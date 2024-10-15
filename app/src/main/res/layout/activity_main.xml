@@ -1,19 +1,63 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="@color/primary">
 
-    <TextView
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/primary"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Pineapple"
+            android:textSize="24sp"
+            android:textColor="@color/contrast"
+            android:fontFamily="@font/sf_pro_display" />
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="40dp"
+            android:src="@drawable/logo"
+            android:contentDescription="Logo" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/searchBar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_below="@id/headerLayout"
+        android:layout_margin="16dp"
+        android:hint="Search"
+        android:backgroundTint="@color/secondary"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColorHint="@color/contrast"
+        android:textColor="@color/contrast" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/contentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/searchBar"
+        android:layout_above="@id/createButton"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
+
+    <Button
+        android:id="@+id/createButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:backgroundTint="@color/accent"
+        android:text="Create"
+        android:textColor="@color/primary" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>
