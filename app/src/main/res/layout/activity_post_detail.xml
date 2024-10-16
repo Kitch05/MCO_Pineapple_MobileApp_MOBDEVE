@@ -1,0 +1,81 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#111214">
+
+    <!-- Include Header -->
+    <include
+        layout="@layout/header" />
+
+    <!-- Post Title -->
+    <TextView
+        android:id="@+id/postDetailTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Post Title"
+        android:textSize="26sp"
+        android:textColor="#F1F6F9"
+        android:fontFamily="sans-serif-medium"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:textStyle="bold"
+        android:padding="4dp" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#F1F6F9"
+        android:layout_marginVertical="12dp" />
+
+    <!-- Post Content -->
+    <TextView
+        android:id="@+id/postDetailContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Post content goes here..."
+        android:textSize="18sp"
+        android:textColor="#F1F6F9"
+        android:fontFamily="sans-serif"
+        android:padding="8dp"
+        android:lineSpacingExtra="4dp" />
+
+    <!-- Actions Section with Like, Comment Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="20dp"
+        android:paddingVertical="8dp">
+
+        <!-- Like Button -->
+        <Button
+            android:id="@+id/likeButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#1ED760"
+            android:text="Like"
+            android:textColor="#F1F6F9"
+            android:fontFamily="sans-serif"
+            android:padding="12dp"
+            android:textSize="16sp" />
+
+        <!-- Comment Button -->
+        <Button
+            android:id="@+id/commentButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#1ED760"
+            android:text="Comment"
+            android:textColor="#F1F6F9"
+            android:fontFamily="sans-serif"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+</LinearLayout>
