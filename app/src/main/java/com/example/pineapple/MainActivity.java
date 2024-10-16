@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     private PostAdapter postAdapter;
     private List<Post> postList;
 
+
     @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {

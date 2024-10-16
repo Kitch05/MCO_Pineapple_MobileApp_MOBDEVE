@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#111214"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create your account"
+        android:textColor="#F1F6F9"
+        android:textSize="35sp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="30dp" />
+
+    <TextView
+        android:id="@+id/already_registered"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Already Registered? "
+        android:textColor="#F1F6F9"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/login_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Register"
+        android:textColor="#F1F6F9"
+        android:textSize="15sp"
+        android:layout_marginBottom="30dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_gravity="center_horizontal"/>
+
+    <EditText
+        android:id="@+id/username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Username"
+        android:textColor="#F1F6F9"
+        android:textColorHint="#A9A9A9"
+        android:backgroundTint="#232428"
+        android:padding="10dp"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:textColor="#F1F6F9"
+            android:textColorHint="#A9A9A9"
+            android:backgroundTint="#232428"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif"
+            android:inputType="textPassword"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/toggle_password_visibility"
+            android:layout_width="28dp"
+            android:layout_height="24dp"
+            android:src="@drawable/hide_pw"
+            android:contentDescription="Toggle password visibility"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/confirm_password"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Confirm Password"
+            android:textColor="#F1F6F9"
+            android:textColorHint="#A9A9A9"
+            android:backgroundTint="#232428"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif"
+            android:inputType="textPassword"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/toggle_confirm_password_visibility"
+            android:layout_width="30dp"
+            android:layout_height="23dp"
+            android:src="@drawable/hide_pw"
+            android:contentDescription="Toggle password visibility"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/signup_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sign Up"
+        android:background="#1ED760"
+        android:textColor="#F1F6F9"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:fontFamily="sans-serif"
+        android:textSize="18sp" />
+</LinearLayout>

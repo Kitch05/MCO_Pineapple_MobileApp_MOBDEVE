@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#111214"
+    android:padding="20dp">
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="44dp"
+        android:layout_height="52dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/logo"
+        android:layout_marginTop="50dp" />
+
+    <TextView
+        android:id="@+id/forumname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pineapple"
+        android:textColor="#F1F6F9"
+        android:layout_gravity="center_horizontal"
+        android:textSize="40sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/forumdesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="It's better on pizza."
+        android:textColor="#F1F6F9"
+        android:layout_gravity="center_horizontal"
+        android:textSize="20sp"
+        android:layout_marginTop="5dp" />
+
+    <TextView
+        android:id="@+id/login_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" Login"
+        android:textColor="#F1F6F9"
+        android:textSize="20sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="40dp" />
+
+    <EditText
+        android:id="@+id/username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email/Username"
+        android:textColor="#F1F6F9"
+        android:textColorHint="#A9A9A9"
+        android:backgroundTint="#232428"
+        android:padding="10dp"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:textColor="#F1F6F9"
+            android:textColorHint="#A9A9A9"
+            android:backgroundTint="#232428"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:fontFamily="sans-serif"
+            android:inputType="textPassword"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/toggle_password_visibility"
+            android:layout_width="20dp"
+            android:layout_height="26dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="8dp"
+            android:clickable="true"
+            android:contentDescription="Toggle password visibility"
+            android:focusable="true"
+            android:src="@drawable/show_pw" />
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/remember_me"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Remember Me"
+        android:textColor="#F1F6F9"
+        android:layout_marginTop="15dp" />
+
+    <Button
+        android:id="@+id/login_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Log In"
+        android:background="#1ED760"
+        android:textColor="#F1F6F9"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:fontFamily="sans-serif"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/signup_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Need an account? Sign Up"
+        android:textColor="#F1F6F9"
+        android:layout_gravity="center_horizontal"
+        android:textSize="15sp"
+        android:layout_marginTop="20dp" />
+
+    <TextView
+        android:id="@+id/guest_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Visit as Guest"
+        android:textColor="#F1F6F9"
+        android:layout_gravity="center_horizontal"
+        android:textSize="15sp"
+        android:layout_marginTop="5dp" />
+
+</LinearLayout>
