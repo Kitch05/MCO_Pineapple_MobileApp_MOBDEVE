@@ -1,6 +1,7 @@
 package com.example.pineapple;
 
 import android.content.Intent;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
@@ -17,9 +18,11 @@ public class Registration extends AppCompatActivity {
 
     private EditText usernameEditText;
     private EditText passwordEditText;
+    private EditText emailEditText;
     private EditText confirmPasswordEditText;
     private boolean isPasswordVisible = false;
     private boolean isConfirmPasswordVisible = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,16 +31,21 @@ public class Registration extends AppCompatActivity {
 
         usernameEditText = findViewById(R.id.username);
         passwordEditText = findViewById(R.id.password);
+        emailEditText = findViewById(R.id.email);
         confirmPasswordEditText = findViewById(R.id.confirm_password);
         Button signupButton = findViewById(R.id.signup_button);
         TextView loginLink = findViewById(R.id.login_link);
         ImageView togglePasswordVisibility = findViewById(R.id.toggle_password_visibility);
         ImageView toggleConfirmPasswordVisibility = findViewById(R.id.toggle_confirm_password_visibility);
 
+        loginLink.setPaintFlags(loginLink.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+
         signupButton.setOnClickListener(v -> {
             if (validateForm()) {
                 Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show();
 
+                Intent intent = new Intent(Registration.this, Login.class);
+                startActivity(intent);
             }
         });
 
@@ -74,9 +82,10 @@ public class Registration extends AppCompatActivity {
     private boolean validateForm() {
         String username = usernameEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
+        String email = emailEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
-        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
             return false;
         }
