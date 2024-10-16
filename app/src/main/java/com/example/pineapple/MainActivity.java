@@ -14,7 +14,6 @@ public class MainActivity extends AppCompatActivity {
     private PostAdapter postAdapter;
     private List<Post> postList;
 
-
     @SuppressLint("WrongViewCast")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +25,8 @@ public class MainActivity extends AppCompatActivity {
 
         loadPosts();
 
-        postAdapter = new PostAdapter(postList);
+        // Pass 'this' (context) and 'postList' to the PostAdapter
+        postAdapter = new PostAdapter(this, postList);
         recyclerView.setAdapter(postAdapter);
     }
 
