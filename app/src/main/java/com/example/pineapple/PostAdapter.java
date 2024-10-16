@@ -34,7 +34,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public int getItemCount() {
         return posts.size();
     }
-
+// demo for nell git
     static class PostViewHolder extends RecyclerView.ViewHolder {
         TextView titleTextView;
         TextView contentTextView;
