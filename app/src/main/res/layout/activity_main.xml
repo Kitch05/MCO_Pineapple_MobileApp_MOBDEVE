@@ -1,7 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/primary">
+    android:background="#111214">
 
     <!-- Include Header Layout -->
     <include
@@ -16,11 +16,11 @@
         android:layout_below="@id/headerLayout"
         android:layout_margin="16dp"
         android:hint="Search"
-        android:backgroundTint="@color/secondary"
+        android:backgroundTint="#232428"
+        android:textColorHint="#A9A9A9"
+        android:textColor="#F1F6F9"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textColorHint="@color/contrast"
-        android:textColor="@color/contrast" />
+        android:paddingEnd="16dp" />
 
     <!-- RecyclerView for Content -->
     <androidx.recyclerview.widget.RecyclerView
@@ -28,19 +28,19 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_below="@id/searchBar"
-        android:layout_above="@id/createButton"
+        android:layout_above="@id/addPostButton"
         android:padding="16dp"
         android:scrollbars="vertical" />
 
     <!-- Create Button -->
     <Button
-        android:id="@+id/createButton"
+        android:id="@+id/addPostButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="16dp"
-        android:backgroundTint="@color/accent"
-        android:text="Create"
-        android:textColor="@color/primary" />
+        android:background="#1ED760"
+        android:text="Add"
+        android:textColor="#F1F6F9" />
 </RelativeLayout>

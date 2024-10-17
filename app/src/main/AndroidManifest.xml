@@ -30,9 +30,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Add/Edit Post Activity -->
+        <activity android:name=".AddEditPostActivity" />
 
+        <!-- Post Detail Activity (if applicable) -->
         <activity android:name=".PostDetailActivity" />
-
 
     </application>
 

@@ -1,81 +1,206 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="20dp"
     android:background="#111214">
+    <include layout="@layout/header" />
 
-    <!-- Include Header -->
-    <include
-        layout="@layout/header" />
-
-    <!-- Post Title -->
-    <TextView
-        android:id="@+id/postDetailTitle"
+    <!-- CardView for Post Content -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Post Title"
-        android:textSize="26sp"
-        android:textColor="#F1F6F9"
-        android:fontFamily="sans-serif-medium"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:textStyle="bold"
-        android:padding="4dp" />
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#1A1A1A">
 
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#F1F6F9"
-        android:layout_marginVertical="12dp" />
-
-    <!-- Post Content -->
-    <TextView
-        android:id="@+id/postDetailContent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Post content goes here..."
-        android:textSize="18sp"
-        android:textColor="#F1F6F9"
-        android:fontFamily="sans-serif"
-        android:padding="8dp"
-        android:lineSpacingExtra="4dp" />
-
-    <!-- Actions Section with Like, Comment Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="20dp"
-        android:paddingVertical="8dp">
-
-        <!-- Like Button -->
-        <Button
-            android:id="@+id/likeButton"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#1ED760"
-            android:text="Like"
-            android:textColor="#F1F6F9"
-            android:fontFamily="sans-serif"
-            android:padding="12dp"
-            android:textSize="16sp" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <!-- Comment Button -->
-        <Button
-            android:id="@+id/commentButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="#1ED760"
-            android:text="Comment"
-            android:textColor="#F1F6F9"
-            android:fontFamily="sans-serif"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+            <!-- Include Header -->
+
+            <!-- Back Button -->
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/back"
+                android:contentDescription="Back"
+                android:layout_marginBottom="8dp"
+                app:tint="#F1F6F9" />
+
+            <!-- User Profile Section -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center_vertical"
+                android:padding="8dp">
+
+                <!-- Profile Picture -->
+                <ImageView
+                    android:id="@+id/userDetailProfilePicture"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/placeholder_image"
+                    app:tint="#FFFFFF" />
+
+                <!-- Username -->
+                <TextView
+                    android:id="@+id/userDetailName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Username"
+                    android:textSize="16sp"
+                    android:textColor="#F1F6F9"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <!-- Post Title -->
+            <TextView
+                android:id="@+id/postDetailTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Post Title"
+                android:textSize="26sp"
+                android:textColor="#F1F6F9"
+                android:fontFamily="sans-serif-medium"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:textStyle="bold"
+                android:padding="4dp" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#F1F6F9"
+                android:layout_marginVertical="12dp" />
+
+            <!-- Post Content -->
+            <TextView
+                android:id="@+id/postDetailContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Post content goes here..."
+                android:textSize="18sp"
+                android:textColor="#F1F6F9"
+                android:fontFamily="sans-serif"
+                android:padding="8dp"
+                android:lineSpacingExtra="4dp" />
+
+            <!-- Upvote/Downvote/Comment Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingVertical="8dp">
+
+                <!-- Upvote Button with Count on the Left -->
+                <LinearLayout
+                    android:id="@+id/upvoteSection"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_alignParentStart="true">
+
+                    <ImageView
+                        android:id="@+id/upvoteIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/upvoteicon"
+                        app:tint="#F1F6F9" />
+
+                    <TextView
+                        android:id="@+id/upvoteCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="2"
+                        android:textSize="14sp"
+                        android:textColor="#F1F6F9" />
+                </LinearLayout>
+
+                <!-- Downvote Button with Count on the Left -->
+                <LinearLayout
+                    android:id="@+id/downvoteSection"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_toEndOf="@id/upvoteSection"
+                    android:layout_marginStart="16dp">
+
+                    <ImageView
+                        android:id="@+id/downvoteIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/downvote"
+                        app:tint="#F1F6F9" />
+
+                    <TextView
+                        android:id="@+id/downvoteCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="0"
+                        android:textSize="14sp"
+                        android:textColor="#F1F6F9" />
+                </LinearLayout>
+
+                <!-- Comment Icon with Count on the Right -->
+                <LinearLayout
+                    android:id="@+id/commentSection"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_alignParentEnd="true">
+
+                    <ImageView
+                        android:id="@+id/commentIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/comment"
+                        app:tint="#F1F6F9" />
+
+                    <TextView
+                        android:id="@+id/commentCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="0"
+                        android:textSize="14sp"
+                        android:textColor="#F1F6F9" />
+                </LinearLayout>
+            </RelativeLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Comment Input Section Outside CardView -->
+    <EditText
+        android:id="@+id/commentInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Add a comment..."
+        android:textColorHint="#B3B3B3"
+        android:textColor="#F1F6F9"
+        android:backgroundTint="#232428"
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:inputType="textMultiLine" />
 </LinearLayout>

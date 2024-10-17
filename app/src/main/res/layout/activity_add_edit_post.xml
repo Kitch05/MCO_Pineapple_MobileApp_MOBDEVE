@@ -1,0 +1,58 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#111214">
+    <include layout="@layout/header" />
+    <!-- Back Button -->
+    <ImageView
+        android:id="@+id/backButton"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/back"
+        android:contentDescription="Back"
+        android:layout_gravity="start"
+        android:padding="4dp"
+        app:tint="#F1F6F9" />
+
+    <!-- Post Title Input -->
+    <EditText
+        android:id="@+id/postTitleInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Post Title"
+        android:textColor="#F1F6F9"
+        android:textColorHint="#A9A9A9"
+        android:backgroundTint="#232428"
+        android:padding="10dp"
+        android:textSize="15sp" />
+
+    <!-- Post Content Input -->
+    <EditText
+        android:id="@+id/postContentInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Post Content"
+        android:inputType="textMultiLine"
+        android:gravity="top"
+        android:lines="4"
+        android:textColor="#F1F6F9"
+        android:textColorHint="#A9A9A9"
+        android:backgroundTint="#232428"
+        android:padding="10dp"
+        android:textSize="15sp" />
+
+    <!-- Save Post Button -->
+    <Button
+        android:id="@+id/savePostButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:background="#1ED760"
+        android:textColor="#F1F6F9"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:textSize="18sp" />
+</LinearLayout>
