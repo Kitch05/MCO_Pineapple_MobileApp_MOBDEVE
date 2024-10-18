@@ -1,0 +1,46 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111214">
+
+    <!-- Include Header Layout -->
+    <include
+        android:id="@+id/headerLayout"
+        layout="@layout/header" />
+
+    <!-- Search Bar -->
+    <EditText
+        android:id="@+id/searchBar"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_below="@id/headerLayout"
+        android:layout_margin="16dp"
+        android:hint="Search My Communities"
+        android:backgroundTint="#232428"
+        android:textColorHint="#A9A9A9"
+        android:textColor="#F1F6F9"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" />
+
+    <!-- RecyclerView for My Community List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/myCommunityContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/searchBar"
+        android:layout_above="@id/createCommunityButton"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
+
+    <!-- Create Community Button -->
+    <Button
+        android:id="@+id/createCommunityButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:background="#1ED760"
+        android:text="Create Community"
+        android:textColor="#F1F6F9" />
+</RelativeLayout>
