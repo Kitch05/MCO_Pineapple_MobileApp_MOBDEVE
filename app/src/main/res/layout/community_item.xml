@@ -1,0 +1,140 @@
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="#1A1A1A"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#1A1A1A">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#1119">
+
+        <!-- Community Information Section -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
+
+            <!-- Community Icon -->
+
+            <!-- Community Name -->
+
+            <ImageView
+                android:id="@+id/communityIcon"
+                android:layout_width="47dp"
+                android:layout_height="54dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="1dp"
+                android:src="@drawable/community"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/communityName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Community Name"
+                android:textSize="18sp"
+                android:textColor="#F1F6F9"
+                android:fontFamily="sans-serif-medium"
+                android:layout_toEndOf="@id/communityIcon"
+                android:layout_marginStart="8dp"
+                android:layout_centerVertical="true" />
+
+            <!-- Join Button Positioned to the Right -->
+            <Button
+                android:id="@+id/joinCommunityButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="#1ED760"
+                android:text="Join"
+                android:textColor="#F1F6F9" />
+        </RelativeLayout>
+
+        <!-- Community Description -->
+        <TextView
+            android:id="@+id/communityDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Community description here..."
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="#A9A9A9"
+            android:fontFamily="sans-serif" />
+
+        <!-- Members Count and Posts Count Section -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="8dp">
+
+            <!-- Members Count -->
+            <LinearLayout
+                android:id="@+id/membersSection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_alignParentStart="true">
+
+                <ImageView
+                    android:id="@+id/membersIcon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/members"
+                    app:tint="#F1F6F9" />
+
+                <TextView
+                    android:id="@+id/membersCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="0 Members"
+                    android:textColor="#F1F6F9"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <!-- Posts Count -->
+            <LinearLayout
+                android:id="@+id/postsSection"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_alignParentEnd="true">
+
+                <ImageView
+                    android:id="@+id/postsIcon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/post2"
+                    app:tint="#F1F6F9" />
+
+                <TextView
+                    android:id="@+id/postsCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="0 Posts"
+                    android:textColor="#F1F6F9"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </RelativeLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
