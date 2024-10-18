@@ -13,13 +13,6 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <Toolbar
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-
-        </Toolbar>
-
         <ImageView
             android:layout_width="140dp"
             android:layout_height="140dp">
