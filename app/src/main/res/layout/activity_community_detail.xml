@@ -23,15 +23,36 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Back Button -->
-            <ImageView
-                android:id="@+id/backButton"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/back"
-                android:contentDescription="Back"
-                android:layout_marginBottom="8dp"
-                app:tint="#F1F6F9" />
+            <!-- RelativeLayout for Back and Edit Buttons -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Back Button -->
+                <ImageView
+                    android:id="@+id/backButton"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/back"
+                    android:contentDescription="Back"
+                    android:layout_marginBottom="8dp"
+                    app:tint="#F1F6F9" />
+
+                <!-- Edit Button -->
+                <ImageView
+                    android:id="@+id/editCommunityButton"
+                    android:layout_width="24dp"
+                    android:layout_height="23dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="26dp"
+                    android:layout_marginRight="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:contentDescription="Edit Community"
+                    android:src="@drawable/edit2" />
+            </RelativeLayout>
 
             <!-- Community Header Section -->
             <LinearLayout
