@@ -1,7 +1,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#111214">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#111214"
+    tools:context=".MainActivity">
 
     <!-- Include Header Layout -->
     <include
@@ -43,4 +45,8 @@
         android:background="#1ED760"
         android:text="Add"
         android:textColor="#F1F6F9" />
+
+    <include
+        android:id="@+id/footer"
+        layout="@layout/footer"/>
 </RelativeLayout>
