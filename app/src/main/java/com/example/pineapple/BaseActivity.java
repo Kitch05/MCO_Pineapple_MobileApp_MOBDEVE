@@ -37,7 +37,7 @@ public class BaseActivity extends AppCompatActivity {
     private void setupHeaderButtons() {
         menuButton.setOnClickListener(v -> {
             // Handle menu button click
-            Intent intent = new Intent(BaseActivity.this, CommunityActivity.class);
+            Intent intent = new Intent(BaseActivity.this, MyCommunities.class);
             startActivity(intent);
         });
 

@@ -1,32 +1,27 @@
-<androidx.drawerlayout.widget.DrawerLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/drawer_layout"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#111214">
 
-    <!-- Include Header Layout -->
-    <include
-        android:id="@+id/header"
-        layout="@layout/header" />
-
-    <!-- Main Content Layout -->
-    <FrameLayout
+    <!-- Search Bar -->
+    <EditText
+        android:id="@+id/searchBar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="top">
+        android:layout_height="40dp"
+        android:layout_margin="16dp"
+        android:hint="Search My Communities"
+        android:backgroundTint="#232428"
+        android:textColorHint="#A9A9A9"
+        android:textColor="#F1F6F9"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" />
 
-        <!-- Main RecyclerView for displaying the communities -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/myCommunitiesRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="?attr/actionBarSize" />
-    </FrameLayout>
-
-    <!-- Drawer RecyclerView -->
+    <!-- RecyclerView for My Communities List -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/myCommunitiesDrawerRecyclerView"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start" />
-</androidx.drawerlayout.widget.DrawerLayout>
+        android:id="@+id/myCommunityContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/searchBar"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
+</RelativeLayout>
