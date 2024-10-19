@@ -13,6 +13,7 @@ public class PostDetailActivity extends AppCompatActivity {
     private TextView contentTextView;
     private TextView userNameTextView;
     private ImageView userProfileImageView;
+    private TextView communityTextView;  // Add TextView for community
     private TextView upvoteCountTextView;
     private TextView downvoteCountTextView;
     private ImageView upvoteButton;
@@ -32,22 +33,26 @@ public class PostDetailActivity extends AppCompatActivity {
         contentTextView = findViewById(R.id.postDetailContent);
         userNameTextView = findViewById(R.id.userDetailName);
         userProfileImageView = findViewById(R.id.userDetailProfilePicture);
+        communityTextView = findViewById(R.id.postCommunity);  // Initialize community TextView
         upvoteCountTextView = findViewById(R.id.upvoteCount);
         downvoteCountTextView = findViewById(R.id.downvoteCount);
         upvoteButton = findViewById(R.id.upvoteIcon);
         downvoteButton = findViewById(R.id.downvoteIcon);
         commentInput = findViewById(R.id.commentInput);
-        backButton = findViewById(R.id.backButton); // Initialize back button
+        backButton = findViewById(R.id.backButton);
 
         Intent intent = getIntent();
         String title = intent.getStringExtra("title");
         String content = intent.getStringExtra("content");
         String username = intent.getStringExtra("username");
+        String community = intent.getStringExtra("community");  // Get community from intent
         int profilePicture = intent.getIntExtra("profilePicture", R.drawable.placeholder_image);
 
+        // Set post details
         titleTextView.setText(title);
         contentTextView.setText(content);
         userNameTextView.setText(username);
+        communityTextView.setText(community);  // Display community name
         userProfileImageView.setImageResource(profilePicture);
 
         // Upvote Button Logic

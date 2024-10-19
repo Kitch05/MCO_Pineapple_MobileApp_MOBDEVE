@@ -37,10 +37,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         final Post post = postData.get(position);
 
-        // Set title, content, username, and initial counts
+        // Set title, content, username, community, and initial counts
         holder.textViewTitle.setText(post.getTitle());
         holder.textViewContent.setText(post.getContent());
         holder.textViewUsername.setText(post.getUser().getName());
+        holder.textViewCommunity.setText(post.getCommunity()); // Bind the community data
         holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
         holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
 
@@ -69,6 +70,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         TextView textViewTitle;
         TextView textViewContent;
         TextView textViewUsername;
+        TextView textViewCommunity; // Add a TextView for community
         TextView upvoteCount;
         TextView downvoteCount;
         ImageView editIcon;
@@ -80,6 +82,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             textViewTitle = itemView.findViewById(R.id.postTitle);
             textViewContent = itemView.findViewById(R.id.postContent);
             textViewUsername = itemView.findViewById(R.id.userName);
+            textViewCommunity = itemView.findViewById(R.id.postCommunity); // Initialize community TextView
             upvoteCount = itemView.findViewById(R.id.upvoteCount);
             downvoteCount = itemView.findViewById(R.id.downvoteCount);
             editIcon = itemView.findViewById(R.id.editPostIcon);
@@ -96,5 +99,3 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         void onPostClick(int position);
     }
 }
-
-

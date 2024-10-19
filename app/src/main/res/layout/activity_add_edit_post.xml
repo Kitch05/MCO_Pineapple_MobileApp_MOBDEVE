@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:background="#111214">
-    <include layout="@layout/header" />
+
     <!-- Back Button -->
     <ImageView
         android:id="@+id/backButton"
@@ -43,6 +43,15 @@
         android:backgroundTint="#232428"
         android:padding="10dp"
         android:textSize="15sp" />
+
+    <!-- Community Selection Dropdown -->
+    <Spinner
+        android:id="@+id/communitySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#232428"
+        android:padding="10dp"
+        android:layout_marginTop="10dp" />
 
     <!-- Save Post Button -->
     <Button
