@@ -22,8 +22,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Include Header -->
-
             <!-- Back Button -->
             <ImageView
                 android:id="@+id/backButton"
@@ -75,6 +73,18 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="16dp"
                 android:textStyle="bold"
+                android:padding="4dp" />
+
+            <!-- Community Name (New Section) -->
+            <TextView
+                android:id="@+id/postCommunity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Community Name"
+                android:textSize="14sp"
+                android:textColor="#A9A9A9"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
                 android:padding="4dp" />
 
             <!-- Divider -->

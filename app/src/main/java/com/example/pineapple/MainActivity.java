@@ -15,20 +15,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.widget.Button;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.pineapple.databinding.ActivityMainBinding;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class MainActivity extends BaseActivity { // Extend BaseActivity instead of AppCompatActivity
 
     ActivityMainBinding binding;
@@ -65,16 +51,18 @@ public class MainActivity extends BaseActivity { // Extend BaseActivity instead 
                         Intent data = result.getData();
                         String title = data.getStringExtra("title");
                         String content = data.getStringExtra("content");
+                        String community = data.getStringExtra("community"); // Getting community
                         int position = data.getIntExtra("position", -1);
 
                         if (position == -1) {
                             User defaultUser = new User("Default User", R.drawable.placeholder_image);
-                            postList.add(0, new Post(title, content, defaultUser));
+                            postList.add(0, new Post(title, content, defaultUser, community));
                             postAdapter.notifyItemInserted(0);
                         } else {
                             Post post = postList.get(position);
                             post.setTitle(title);
                             post.setContent(content);
+                            post.setCommunity(community); // Set the updated community
                             postAdapter.notifyItemChanged(position);
                         }
                         recyclerView.scrollToPosition(0);
@@ -93,6 +81,7 @@ public class MainActivity extends BaseActivity { // Extend BaseActivity instead 
         Intent intent = new Intent(MainActivity.this, AddEditPostActivity.class);
         intent.putExtra("title", post.getTitle());
         intent.putExtra("content", post.getContent());
+        intent.putExtra("community", post.getCommunity()); // Pass the community to edit
         intent.putExtra("position", position);
         addEditPostLauncher.launch(intent);
     }
@@ -104,6 +93,7 @@ public class MainActivity extends BaseActivity { // Extend BaseActivity instead 
         intent.putExtra("content", post.getContent());
         intent.putExtra("username", post.getUser().getName());
         intent.putExtra("profilePicture", post.getUser().getProfilePicture());
+        intent.putExtra("community", post.getCommunity()); // Pass the community to details
         startActivity(intent);
     }
 
@@ -112,8 +102,8 @@ public class MainActivity extends BaseActivity { // Extend BaseActivity instead 
         User user1 = new User("Alice Smith", placeholderProfilePicture);
         User user2 = new User("John Doe", placeholderProfilePicture);
 
-        postList.add(new Post("Post Title 1", "This is the content of the first post.", user1));
-        postList.add(new Post("Post Title 2", "This is the content of the second post.", user2));
-        postList.add(new Post("Post Title 3", "This is the content of the third post.", user1));
+        postList.add(new Post("Post Title 1", "This is the content of the first post.", user1, "Tech Enthusiasts"));
+        postList.add(new Post("Post Title 2", "This is the content of the second post.", user2, "Photography Lovers"));
+        postList.add(new Post("Post Title 3", "This is the content of the third post.", user1, "Foodies"));
     }
 }

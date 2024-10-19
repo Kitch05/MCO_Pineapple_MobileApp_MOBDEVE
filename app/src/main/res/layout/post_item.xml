@@ -43,7 +43,7 @@
                 android:fontFamily="sans-serif-medium" />
         </LinearLayout>
 
-        <!-- Post Title and Edit Button Section -->
+        <!-- Post Title and Community Section -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,6 +61,17 @@
                 android:fontFamily="sans-serif-medium"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true" />
+
+            <!-- Community Name (Added) -->
+            <TextView
+                android:id="@+id/postCommunity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Community Name"
+                android:textSize="14sp"
+                android:textColor="#A9A9A9"
+                android:layout_below="@id/postTitle"
+                android:layout_marginTop="4dp" />
 
             <!-- Edit Button Positioned to the Right -->
             <ImageView

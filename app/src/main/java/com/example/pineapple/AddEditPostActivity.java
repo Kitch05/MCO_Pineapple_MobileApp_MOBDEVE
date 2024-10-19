@@ -2,15 +2,22 @@ package com.example.pineapple;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddEditPostActivity extends AppCompatActivity {
 
     private EditText postTitleInput;
     private EditText postContentInput;
+    private Spinner communitySpinner;  // Added as a class field
     private Button savePostButton;
     private ImageView backButton;
     private int position = -1;
@@ -25,9 +32,24 @@ public class AddEditPostActivity extends AppCompatActivity {
         postContentInput = findViewById(R.id.postContentInput);
         savePostButton = findViewById(R.id.savePostButton);
         backButton = findViewById(R.id.backButton);
+        communitySpinner = findViewById(R.id.communitySpinner);  // Initialize Spinner
 
-        // Set up back button to return to previous screen
+        // Set up back button to return to the previous screen
         backButton.setOnClickListener(v -> onBackPressed());
+
+        // Dummy communities for spinner
+        List<String> communityList = new ArrayList<>();
+        communityList.add("Select Community");
+        communityList.add("Tech Enthusiasts");
+        communityList.add("Photography Lovers");
+        communityList.add("Fitness Buffs");
+        communityList.add("Foodies");
+
+        // Adapter for the spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, communityList);
+        adapter.setDropDownViewResource(R.layout.spinner_item);
+        communitySpinner.setAdapter(adapter);
+
 
         // Check if editing an existing post or creating a new one
         Intent intent = getIntent();
@@ -35,6 +57,14 @@ public class AddEditPostActivity extends AppCompatActivity {
             position = intent.getIntExtra("position", -1);
             postTitleInput.setText(intent.getStringExtra("title"));
             postContentInput.setText(intent.getStringExtra("content"));
+            String community = intent.getStringExtra("community");
+
+            // Set the selected community in the spinner
+            if (community != null) {
+                int spinnerPosition = adapter.getPosition(community);
+                communitySpinner.setSelection(spinnerPosition);
+            }
+
             savePostButton.setText("Update");
         } else {
             savePostButton.setText("Save");
@@ -47,11 +77,13 @@ public class AddEditPostActivity extends AppCompatActivity {
     private void saveOrUpdatePost() {
         String title = postTitleInput.getText().toString().trim();
         String content = postContentInput.getText().toString().trim();
+        String community = communitySpinner.getSelectedItem().toString();  // Get selected community
 
-        if (!title.isEmpty() && !content.isEmpty()) {
+        if (!title.isEmpty() && !content.isEmpty() && !community.equals("Select Community")) {
             Intent resultIntent = new Intent();
             resultIntent.putExtra("title", title);
             resultIntent.putExtra("content", content);
+            resultIntent.putExtra("community", community);  // Pass selected community back
             resultIntent.putExtra("position", position);
             setResult(RESULT_OK, resultIntent);
             finish();

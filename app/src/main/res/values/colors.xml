@@ -5,4 +5,7 @@
     <color name="contrast">#f2f3f5</color>
     <color name="accent">#1ED760</color>
     <color name="border">#343536</color>
+    <!-- colors.xml -->
+    <color name="purple_500">#9C27B0</color>
+
 </resources>
