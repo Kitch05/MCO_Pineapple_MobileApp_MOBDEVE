@@ -1,0 +1,44 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp"
+    android:background="#232428">
+
+    <!-- Sender's Name -->
+    <TextView
+        android:id="@+id/sender_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sender Name"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="#F1F6F9"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true" />
+
+    <!-- Timestamp -->
+    <TextView
+        android:id="@+id/message_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10:45 AM"
+        android:textSize="12sp"
+        android:textColor="#A9A9A9"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true" />
+
+    <!-- Message Preview -->
+    <TextView
+        android:id="@+id/message_preview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="This is a preview of the message content."
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="#F1F6F9"
+        android:layout_below="@id/sender_name"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="4dp" />
+</RelativeLayout>

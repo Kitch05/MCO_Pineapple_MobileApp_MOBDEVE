@@ -1,0 +1,27 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#111214">
+
+    <!-- Search Bar for Inbox -->
+    <EditText
+        android:id="@+id/search_inbox"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_margin="16dp"
+        android:hint="Search Messages"
+        android:backgroundTint="#232428"
+        android:textColorHint="#A9A9A9"
+        android:textColor="#F1F6F9"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp" />
+
+    <!-- RecyclerView for Inbox Messages -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/inbox_recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/search_inbox"
+        android:padding="16dp"
+        android:scrollbars="vertical" />
+</RelativeLayout>
