@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:title="Home"
+    <item
         android:id="@+id/home"
-        android:icon="@drawable/home"/>
+        android:icon="@drawable/home"
+        android:title="Home" />
 
-    <item android:title="Communities"
+    <item
         android:id="@+id/community"
-        android:icon="@drawable/community"/>
+        android:icon="@drawable/community"
+        android:title="Communities" />
 
-    <item android:title="Post"
+    <item
         android:id="@+id/addPost"
-        android:icon="@drawable/edit"/>
+        android:icon="@drawable/edit"
+        android:title="Post" />
 
-    <item android:title="Inbox"
+    <item
         android:id="@+id/inbox"
-        android:icon="@drawable/inbox"/>
+        android:icon="@drawable/inbox"
+        android:title="Inbox" />
 
-    <item android:title="Notification"
+    <item
         android:id="@+id/notifs"
-        android:icon="@drawable/no_notifications"/>
+        android:icon="@drawable/no_notifications"
+        android:title="Notification" />
 </menu>

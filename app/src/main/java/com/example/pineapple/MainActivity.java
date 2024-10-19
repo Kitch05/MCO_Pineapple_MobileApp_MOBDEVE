@@ -15,7 +15,21 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.pineapple.databinding.ActivityMainBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends BaseActivity { // Extend BaseActivity instead of AppCompatActivity
 
     ActivityMainBinding binding;
     BottomNavigationView navbar;
@@ -28,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+
+        // Instead of setContentView(), use the method to set the layout in BaseActivity
+        setActivityLayout(R.layout.activity_main);
 
         recyclerView = findViewById(R.id.contentContainer);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

@@ -3,17 +3,11 @@
     android:layout_height="match_parent"
     android:background="#111214">
 
-    <!-- Include Header Layout -->
-    <include
-        android:id="@+id/headerLayout"
-        layout="@layout/header" />
-
     <!-- Search Bar -->
     <EditText
         android:id="@+id/searchBar"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:layout_below="@id/headerLayout"
         android:layout_margin="16dp"
         android:hint="Search Communities"
         android:backgroundTint="#232428"
@@ -26,9 +20,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/communityContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/searchBar"
-        android:layout_above="@id/createCommunityButton"
         android:padding="16dp"
         android:scrollbars="vertical" />
 

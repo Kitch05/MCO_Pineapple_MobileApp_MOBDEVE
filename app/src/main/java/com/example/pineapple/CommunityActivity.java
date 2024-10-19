@@ -11,22 +11,34 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommunityActivity extends AppCompatActivity {
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CommunityActivity extends BaseActivity {
 
     private RecyclerView recyclerView;
     private CommunityAdapter communityAdapter;
     private List<Community> communityList;
-    private Button createCommunityButton; // Keep only the create community button
-    private EditText searchBar; // Search bar
+    private Button createCommunityButton;
+    private EditText searchBar;
     private int currentCommunityPosition = -1; // To track selected community position
 
     // Define a request code for launching the add/edit activity
-    private static final int ADD_EDIT_COMMUNITY_REQUEST = 1; // Use a constant value for the request code
+    private static final int ADD_EDIT_COMMUNITY_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_community);
+
+        // Set the layout for this activity's content below the header
+        setActivityLayout(R.layout.activity_community);
 
         // Initialize RecyclerView and set up layout manager
         recyclerView = findViewById(R.id.communityContainer);
@@ -47,7 +59,7 @@ public class CommunityActivity extends AppCompatActivity {
         // Set up create community button listener
         createCommunityButton.setOnClickListener(v -> {
             Intent intent = new Intent(CommunityActivity.this, AddEditCommunityActivity.class);
-            startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST); // Use startActivityForResult for receiving data back
+            startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
         });
 
         // Set up search bar functionality (optional)
@@ -79,9 +91,9 @@ public class CommunityActivity extends AppCompatActivity {
             if (position == -1) {
                 // Add new community
                 Community newCommunity = new Community(communityName, communityDescription);
-                communityList.add(newCommunity); // communityList is your list of communities
+                communityList.add(newCommunity);
             } else {
-                // Update existing community (assuming you implement a suitable update mechanism in the Community class)
+                // Update existing community
                 Community existingCommunity = communityList.get(position);
                 existingCommunity.setMemberCount(data.getIntExtra("memberCount", existingCommunity.getMemberCount()));
                 existingCommunity.setPostCount(data.getIntExtra("postCount", existingCommunity.getPostCount()));
@@ -92,14 +104,14 @@ public class CommunityActivity extends AppCompatActivity {
         }
     }
 
-    // Method to update currentCommunityPosition
+    // Add this method to track the selected community position
     public void setCurrentCommunityPosition(int position) {
         this.currentCommunityPosition = position;
     }
 
     private void loadCommunities() {
         // Create a sample User object
-        User creator = new User("CreatorUser", R.drawable.placeholder_image); // Replace with a valid image resource ID
+        User creator = new User("CreatorUser", R.drawable.placeholder_image);
 
         communityList.add(new Community("Tech Enthusiasts", "A community for tech lovers.", 0, 0, creator));
         communityList.add(new Community("Music Fans", "Share and discuss your favorite music.", 0, 0, creator));

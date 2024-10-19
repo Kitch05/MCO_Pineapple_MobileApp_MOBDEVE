@@ -1,8 +1,9 @@
 package com.example.pineapple;
 
-public class Community {
-    private String name;
-    private String description;
+public class Community{
+    private final String name;
+    private final String description;
+
     private int memberCount; // Optional: initialize with 0
     private int postCount;   // Optional: initialize with 0
     private final User creator; // Optional: this could also be set later if needed
