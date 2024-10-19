@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class AddEditCommunityActivity extends AppCompatActivity {
@@ -56,8 +58,7 @@ public class AddEditCommunityActivity extends AppCompatActivity {
             setResult(RESULT_OK, resultIntent);
             finish();
         } else {
-            // Optionally, show a message if inputs are invalid
-            // Toast.makeText(this, "Please enter valid details", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter valid details", Toast.LENGTH_SHORT).show();
         }
     }
 }

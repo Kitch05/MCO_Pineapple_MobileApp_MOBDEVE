@@ -2,9 +2,12 @@ package com.example.pineapple;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,6 +19,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
     private static final int ADD_POST_REQUEST_CODE = 1;
     private static final int EDIT_POST_REQUEST_CODE = 2;
+    private static final int EDIT_COMMUNITY_REQUEST_CODE = 3; // Request code for editing community
 
     private TextView communityNameTextView;
     private TextView communityDescriptionTextView;
@@ -25,6 +29,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private Button joinLeaveButton;
     private ImageView backButton;
     private RecyclerView postListRecyclerView;
+    private ImageView editCommunityButton; // Add this for the edit button
 
     private Community community;
     private boolean isMember = false; // Initial membership status
@@ -48,6 +53,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
         joinLeaveButton = findViewById(R.id.joinLeaveButton);
         backButton = findViewById(R.id.backButton);
         postListRecyclerView = findViewById(R.id.communityPostList);
+        editCommunityButton = findViewById(R.id.editCommunityButton); // Initialize edit button
         Button addPostButton = findViewById(R.id.addPostButton);
 
         // Get community details from intent
@@ -84,27 +90,37 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
         // Initialize post list and adapter
         postList = new ArrayList<>();
-        postAdapter = new PostAdapter(this, postList, position -> {
-            // Handle post click
-            Intent postDetailIntent = new Intent(CommunityDetailActivity.this, PostDetailActivity.class);
-            postDetailIntent.putExtra("postTitle", postList.get(position).getTitle());
-            postDetailIntent.putExtra("postContent", postList.get(position).getContent());
-            postDetailIntent.putExtra("postUser", postList.get(position).getUser().getName());
-            startActivity(postDetailIntent);
-        }, position -> {
-            // Handle edit post click
-            Intent editPostIntent = new Intent(CommunityDetailActivity.this, AddEditPostActivity.class);
-            editPostIntent.putExtra("title", postList.get(position).getTitle());
-            editPostIntent.putExtra("content", postList.get(position).getContent());
-            editPostIntent.putExtra("position", position);
-            startActivityForResult(editPostIntent, EDIT_POST_REQUEST_CODE);
-        });
-        postListRecyclerView.setAdapter(postAdapter); // Set the adapter
+        postAdapter = new PostAdapter(this, postList,
+                position -> {
+                    Intent postDetailIntent = new Intent(CommunityDetailActivity.this, AddEditPostActivity.class);
+                    postDetailIntent.putExtra("title", postList.get(position).getTitle());
+                    postDetailIntent.putExtra("content", postList.get(position).getContent());
+                    postDetailIntent.putExtra("position", position);
+                    startActivity(postDetailIntent);
+                },
+                position -> {
+                    Intent editPostIntent = new Intent(CommunityDetailActivity.this, PostDetailActivity.class);
+                    editPostIntent.putExtra("title", postList.get(position).getTitle());
+                    editPostIntent.putExtra("content", postList.get(position).getContent());
+                    editPostIntent.putExtra("position", position);
+                    startActivityForResult(editPostIntent, EDIT_POST_REQUEST_CODE);
+                }
+        );
+        postListRecyclerView.setAdapter(postAdapter);
 
         // Add Post Button Logic
         addPostButton.setOnClickListener(v -> {
             Intent addPostIntent = new Intent(CommunityDetailActivity.this, AddEditPostActivity.class);
             startActivityForResult(addPostIntent, ADD_POST_REQUEST_CODE);
+        });
+
+        // Edit Community Button Logic
+        editCommunityButton.setOnClickListener(v -> {
+            Intent editCommunityIntent = new Intent(CommunityDetailActivity.this, AddEditCommunityActivity.class);
+            editCommunityIntent.putExtra("communityName", community.getName());
+            editCommunityIntent.putExtra("communityDescription", community.getDescription());
+            // Optionally pass the position or other identifiers if needed
+            startActivityForResult(editCommunityIntent, EDIT_COMMUNITY_REQUEST_CODE);
         });
     }
 
@@ -141,6 +157,16 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 post.setTitle(postTitle);
                 post.setContent(postContent);
                 postAdapter.notifyItemChanged(position);
+            } else if (requestCode == EDIT_COMMUNITY_REQUEST_CODE) {
+                // Update community details
+                String updatedName = data.getStringExtra("communityName");
+                String updatedDescription = data.getStringExtra("communityDescription");
+                community.setName(updatedName);
+                community.setDescription(updatedDescription);
+
+                // Update UI with new details
+                communityNameTextView.setText(updatedName);
+                communityDescriptionTextView.setText(updatedDescription);
             }
         }
     }
