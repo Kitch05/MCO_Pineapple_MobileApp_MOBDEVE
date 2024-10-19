@@ -19,41 +19,34 @@ public class CommunityActivity extends BaseActivity {
     private EditText searchBar;
     private int currentCommunityPosition = -1; // To track selected community position
 
-    // Define a request code for launching the add/edit activity
     private static final int ADD_EDIT_COMMUNITY_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Set the layout for this activity's content below the header
         setActivityLayout(R.layout.activity_community);
 
-        // Initialize RecyclerView and set up layout manager
         recyclerView = findViewById(R.id.communityContainer);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Initialize community list and load communities
         communityList = new ArrayList<>();
         loadCommunities();
 
-        // Set up the adapter
         communityAdapter = new CommunityAdapter(this, communityList, this::launchCommunityDetail);
         recyclerView.setAdapter(communityAdapter);
 
-        // Initialize create community button and search bar
+
         createCommunityButton = findViewById(R.id.createCommunityButton);
         searchBar = findViewById(R.id.searchBar);
 
-        // Set up create community button listener
+
         createCommunityButton.setOnClickListener(v -> {
             Intent intent = new Intent(CommunityActivity.this, AddEditCommunityActivity.class);
             startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
         });
 
-        // Set up search bar functionality (optional)
         searchBar.setOnEditorActionListener((textView, actionId, event) -> {
-            // Implement search functionality here
             return false;
         });
     }
@@ -88,18 +81,15 @@ public class CommunityActivity extends BaseActivity {
                 existingCommunity.setPostCount(data.getIntExtra("postCount", existingCommunity.getPostCount()));
             }
 
-            // Notify the adapter of data changes
             communityAdapter.notifyDataSetChanged();
         }
     }
 
-    // Add this method to track the selected community position
     public void setCurrentCommunityPosition(int position) {
         this.currentCommunityPosition = position;
     }
 
     private void loadCommunities() {
-        // Create a sample User object
         User creator = new User("CreatorUser", R.drawable.placeholder_image);
 
         communityList.add(new Community("Tech Enthusiasts", "A community for tech lovers.", 0, 0, creator));

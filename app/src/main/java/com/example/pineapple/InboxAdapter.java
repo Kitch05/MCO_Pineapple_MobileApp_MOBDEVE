@@ -41,18 +41,16 @@ public class InboxAdapter extends RecyclerView.Adapter<InboxAdapter.InboxViewHol
             holder.messagePreview.setAlpha(1.0f); // Full opacity for unread messages
         }
 
-        // Add onClickListener to open InboxDetailActivity
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Create an intent to open InboxDetailActivity
+
                 Intent intent = new Intent(context, InboxDetailActivity.class);
 
-                // Pass the full message content to the activity
                 intent.putExtra("message_content", item.getFullMessage());
                 intent.putExtra("sender_name", item.getSender()); // Optionally pass the sender name too
 
-                // Start the activity
+
                 context.startActivity(intent);
             }
         });

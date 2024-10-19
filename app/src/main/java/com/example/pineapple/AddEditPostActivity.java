@@ -27,17 +27,14 @@ public class AddEditPostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_post);
 
-        // Initialize views
         postTitleInput = findViewById(R.id.postTitleInput);
         postContentInput = findViewById(R.id.postContentInput);
         savePostButton = findViewById(R.id.savePostButton);
         backButton = findViewById(R.id.backButton);
-        communitySpinner = findViewById(R.id.communitySpinner);  // Initialize Spinner
+        communitySpinner = findViewById(R.id.communitySpinner);
 
-        // Set up back button to return to the previous screen
         backButton.setOnClickListener(v -> onBackPressed());
 
-        // Dummy communities for spinner
         List<String> communityList = new ArrayList<>();
         communityList.add("Select Community");
         communityList.add("Tech Enthusiasts");
@@ -45,13 +42,11 @@ public class AddEditPostActivity extends AppCompatActivity {
         communityList.add("Fitness Buffs");
         communityList.add("Foodies");
 
-        // Adapter for the spinner
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, communityList);
         adapter.setDropDownViewResource(R.layout.spinner_item);
         communitySpinner.setAdapter(adapter);
 
 
-        // Check if editing an existing post or creating a new one
         Intent intent = getIntent();
         if (intent.hasExtra("title") && intent.hasExtra("content")) {
             position = intent.getIntExtra("position", -1);
@@ -59,7 +54,6 @@ public class AddEditPostActivity extends AppCompatActivity {
             postContentInput.setText(intent.getStringExtra("content"));
             String community = intent.getStringExtra("community");
 
-            // Set the selected community in the spinner
             if (community != null) {
                 int spinnerPosition = adapter.getPosition(community);
                 communitySpinner.setSelection(spinnerPosition);
@@ -70,7 +64,6 @@ public class AddEditPostActivity extends AppCompatActivity {
             savePostButton.setText("Save");
         }
 
-        // Save or update post on button click
         savePostButton.setOnClickListener(v -> saveOrUpdatePost());
     }
 

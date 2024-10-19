@@ -22,16 +22,13 @@ public class AddEditCommunityActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_community);
 
-        // Initialize views
         communityNameInput = findViewById(R.id.communityNameInput);
         communityDescriptionInput = findViewById(R.id.communityDescriptionInput);
         saveCommunityButton = findViewById(R.id.saveCommunityButton);
         backButton = findViewById(R.id.backButton);
 
-        // Set up back button to return to previous screen
         backButton.setOnClickListener(v -> onBackPressed());
 
-        // Check if editing an existing community or creating a new one
         Intent intent = getIntent();
         if (intent.hasExtra("communityName") && intent.hasExtra("communityDescription")) {
             position = intent.getIntExtra("position", -1);
@@ -42,7 +39,6 @@ public class AddEditCommunityActivity extends AppCompatActivity {
             saveCommunityButton.setText("Save");
         }
 
-        // Save or update community on button click
         saveCommunityButton.setOnClickListener(v -> saveOrUpdateCommunity());
     }
 

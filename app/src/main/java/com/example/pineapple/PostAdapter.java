@@ -37,26 +37,23 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         final Post post = postData.get(position);
 
-        // Set title, content, username, community, and initial counts
         holder.textViewTitle.setText(post.getTitle());
         holder.textViewContent.setText(post.getContent());
         holder.textViewUsername.setText(post.getUser().getName());
-        holder.textViewCommunity.setText(post.getCommunity()); // Bind the community data
+        holder.textViewCommunity.setText(post.getCommunity());
         holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
         holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
 
-        // Set up click listeners for upvote and downvote
         holder.upvoteIcon.setOnClickListener(v -> {
-            post.setUpvoteCount(post.getUpvoteCount() + 1); // Increase upvote count
-            holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount())); // Update UI
+            post.setUpvoteCount(post.getUpvoteCount() + 1);
+            holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
         });
 
         holder.downvoteIcon.setOnClickListener(v -> {
-            post.setDownvoteCount(post.getDownvoteCount() + 1); // Increase downvote count
+            post.setDownvoteCount(post.getDownvoteCount() + 1);
             holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount())); // Update UI
         });
 
-        // Set up click listeners for other interactions
         holder.itemView.setOnClickListener(v -> onPostClickListener.onPostClick(position));
         holder.editIcon.setOnClickListener(v -> onEditClickListener.onEditClick(position));
     }
@@ -70,7 +67,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         TextView textViewTitle;
         TextView textViewContent;
         TextView textViewUsername;
-        TextView textViewCommunity; // Add a TextView for community
+        TextView textViewCommunity;
         TextView upvoteCount;
         TextView downvoteCount;
         ImageView editIcon;

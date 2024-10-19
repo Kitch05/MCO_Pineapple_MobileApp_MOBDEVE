@@ -41,7 +41,4 @@
         android:textColor="#F1F6F9"
         android:visibility="invisible"/>
 
-    <include
-        android:id="@+id/footer"
-        layout="@layout/footer"/>
 </RelativeLayout>

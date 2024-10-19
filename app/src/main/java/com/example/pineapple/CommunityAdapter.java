@@ -36,7 +36,6 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         holder.textViewName.setText(community.getName());
         holder.textViewDescription.setText(community.getDescription());
 
-        // Set up join button functionality
         holder.joinButton.setText(community.isJoined() ? "Joined" : "Join");
 
         holder.joinButton.setOnClickListener(v -> {
@@ -49,7 +48,6 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
             }
         });
 
-        // Safely check if the context is an instance of CommunityActivity
         holder.itemView.setOnClickListener(v -> {
             if (context instanceof CommunityActivity) {
                 ((CommunityActivity) context).setCurrentCommunityPosition(position);

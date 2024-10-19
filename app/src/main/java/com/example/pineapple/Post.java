@@ -8,7 +8,6 @@ public class Post {
     private int upvoteCount;
     private int downvoteCount;
 
-    // Constructor
     public Post(String title, String content, User user, String community) {
         this.title = title;
         this.content = content;
