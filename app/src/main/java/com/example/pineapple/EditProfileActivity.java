@@ -25,6 +25,12 @@ public class EditProfileActivity extends AppCompatActivity {
         editDescription = findViewById(R.id.editDescription);
         editProfilePic = findViewById(R.id.profilePic);
 
+        String newUsername = intent.getStringExtra("username");
+        String newDescription = intent.getStringExtra("userDescription");
+        Integer newProfilePic = intent.getIntExtra("profilePic", 0);
 
+        editProfilePic.setImageResource(newProfilePic);
+        editUsername.setText(newUsername);
+        editDescription.setText(newDescription);
     }
 }
