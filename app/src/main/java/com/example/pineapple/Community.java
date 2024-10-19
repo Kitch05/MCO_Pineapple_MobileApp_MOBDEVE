@@ -1,8 +1,8 @@
 package com.example.pineapple;
 
 public class Community {
-    private final String name;
-    private final String description;
+    private String name;
+    private String description;
     private int memberCount; // Optional: initialize with 0
     private int postCount;   // Optional: initialize with 0
     private final User creator; // Optional: this could also be set later if needed
@@ -12,10 +12,10 @@ public class Community {
     public Community(String name, String description) {
         this.name = name;
         this.description = description;
-        this.memberCount = 0;  // Default member count
-        this.postCount = 0;    // Default post count
-        this.creator = null;    // Creator can be set later if needed
-        this.isJoined = false;  // By default, the user is not a member
+        this.memberCount = 0;
+        this.postCount = 0;
+        this.creator = null;
+        this.isJoined = false;
     }
 
     // Full constructor if you want to provide more details
@@ -58,6 +58,13 @@ public class Community {
         this.memberCount = memberCount;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
     public void setPostCount(int postCount) {
         this.postCount = postCount;
     }
