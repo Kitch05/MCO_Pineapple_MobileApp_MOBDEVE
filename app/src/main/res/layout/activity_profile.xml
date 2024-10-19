@@ -68,6 +68,7 @@
                 android:layout_margin="10dp"/>
 
             <TextView
+                android:id="@+id/userDescription"
                 android:layout_width="300dp"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"

@@ -81,7 +81,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         navInbox.setOnClickListener( v -> {
-            Intent intent = new Intent(BaseActivity.this, MainActivity.class);
+            Intent intent = new Intent(BaseActivity.this, Inbox.class);
             startActivity(intent);
         });
 
