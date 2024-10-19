@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Home"
+        android:icon="@drawable/home"/>
+
+    <item android:title="Communities"
+        android:icon="@drawable/community"/>
+
+    <item android:title="Post"
+        android:icon="@drawable/edit"/>
+
+    <item android:title="Inbox"
+        android:icon="@drawable/inbox"/>
+
+    <item android:title="Notification"
+        android:icon="@drawable/no_notifications"/>
+</menu>
