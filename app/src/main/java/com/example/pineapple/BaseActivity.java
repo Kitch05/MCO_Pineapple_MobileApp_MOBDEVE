@@ -20,6 +20,7 @@ public class BaseActivity extends AppCompatActivity {
     private ImageView homeButton;
     private ImageView profileIcon;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +33,10 @@ public class BaseActivity extends AppCompatActivity {
 
         // Set up button click listeners for the header
         setupHeaderButtons();
+    }
+
+    private void setupFooterButtons() {
+
     }
 
     private void setupHeaderButtons() {
@@ -49,7 +54,7 @@ public class BaseActivity extends AppCompatActivity {
 
         profileIcon.setOnClickListener(v -> {
             // Handle profile button click
-            Intent intent = new Intent(BaseActivity.this, MainActivity.class);
+            Intent intent = new Intent(BaseActivity.this, Profile.class);
             startActivity(intent);
         });
     }
