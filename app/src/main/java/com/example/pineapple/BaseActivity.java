@@ -1,27 +1,18 @@
 package com.example.pineapple;
-import android.app.Notification;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
-import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.annotation.LayoutRes;
 import android.widget.FrameLayout;
 
-import com.example.pineapple.databinding.ActivityMainBinding;
-import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
 
 
 public class BaseActivity extends AppCompatActivity {
@@ -106,7 +97,7 @@ public class BaseActivity extends AppCompatActivity {
 
         profileIcon.setOnClickListener(v -> {
             // Handle profile button click
-            Intent intent = new Intent(BaseActivity.this, Profile.class);
+            Intent intent = new Intent(BaseActivity.this, ProfileActivity.class);
             startActivity(intent);
         });
     }

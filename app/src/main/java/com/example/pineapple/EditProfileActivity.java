@@ -1,17 +1,14 @@
 package com.example.pineapple;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageSwitcher;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-public class ProfileDetailActivity extends AppCompatActivity {
+public class EditProfileActivity extends AppCompatActivity {
 
     private EditText editUsername;
     private EditText editDescription;
@@ -22,6 +19,11 @@ public class ProfileDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile_detail);
+
+        Intent intent = getIntent();
+        editUsername = findViewById(R.id.editUsername);
+        editDescription = findViewById(R.id.editDescription);
+        editProfilePic = findViewById(R.id.profilePic);
 
 
     }
