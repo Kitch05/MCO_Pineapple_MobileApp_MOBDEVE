@@ -1,46 +1,32 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#111214">
+    android:layout_height="match_parent">
 
     <!-- Include Header Layout -->
     <include
-        android:id="@+id/headerLayout"
+        android:id="@+id/header"
         layout="@layout/header" />
 
-    <!-- Search Bar -->
-    <EditText
-        android:id="@+id/searchBar"
+    <!-- Main Content Layout -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_below="@id/headerLayout"
-        android:layout_margin="16dp"
-        android:hint="Search My Communities"
-        android:backgroundTint="#232428"
-        android:textColorHint="#A9A9A9"
-        android:textColor="#F1F6F9"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp" />
+        android:layout_height="match_parent"
+        android:layout_gravity="top">
 
-    <!-- RecyclerView for My Community List -->
+        <!-- Main RecyclerView for displaying the communities -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/myCommunitiesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="?attr/actionBarSize" />
+    </FrameLayout>
+
+    <!-- Drawer RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/myCommunityContainer"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_below="@id/searchBar"
-        android:layout_above="@id/createCommunityButton"
-        android:padding="16dp"
-        android:scrollbars="vertical" />
-
-    <!-- Create Community Button -->
-    <Button
-        android:id="@+id/createCommunityButton"
+        android:id="@+id/myCommunitiesDrawerRecyclerView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:background="#1ED760"
-        android:text="Create Community"
-        android:textColor="#F1F6F9" />
-</RelativeLayout>
+        android:layout_height="match_parent"
+        android:layout_gravity="start" />
+</androidx.drawerlayout.widget.DrawerLayout>

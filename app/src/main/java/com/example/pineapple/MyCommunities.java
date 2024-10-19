@@ -1,96 +1,69 @@
 package com.example.pineapple;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MyCommunities extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
-    private CommunityAdapter communityAdapter;
-    private List<Community> myCommunityList;
-    private Button createCommunityButton; // Keep only the create community button
-    private EditText searchBar; // Search bar
-    private static final int ADD_EDIT_COMMUNITY_REQUEST = 1; // Use a constant value for the request code
+    private DrawerLayout drawerLayout;
+    private ImageView menuButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my_communities);
+        setContentView(R.layout.activity_my_communities); // Verify this points to the correct layout
 
-        // Initialize RecyclerView and set up layout manager
-        recyclerView = findViewById(R.id.myCommunityContainer);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        drawerLayout = findViewById(R.id.drawer_layout);
 
-        // Initialize my community list and load communities
-        myCommunityList = new ArrayList<>();
-        loadMyCommunities();
+        // Find the menuButton within the included header layout
+        View header = findViewById(R.id.header);
+        menuButton = header.findViewById(R.id.menuButton);
 
-        // Set up the adapter
-        communityAdapter = new CommunityAdapter(this, myCommunityList, this::launchCommunityDetail);
-        recyclerView.setAdapter(communityAdapter);
+        if (menuButton == null) {
+            Log.e("MyCommunities", "menuButton is null");
+        } else {
+            Log.d("MyCommunities", "menuButton is not null");
+        }
 
-        // Initialize create community button and search bar
-        createCommunityButton = findViewById(R.id.createCommunityButton);
-        searchBar = findViewById(R.id.searchBar);
-
-        // Set up create community button listener
-        createCommunityButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MyCommunities.this, AddEditCommunityActivity.class);
-            startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST); // Use startActivityForResult for receiving data back
+        // Set up click listener for the menu button
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("MyCommunities", "Menu button clicked");
+                if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.openDrawer(GravityCompat.START);
+                } else {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                }
+            }
         });
     }
 
-    private void launchCommunityDetail(int position) {
-        Community community = myCommunityList.get(position);
-        Intent intent = new Intent(MyCommunities.this, CommunityDetailActivity.class);
-        intent.putExtra("communityName", community.getName());
-        intent.putExtra("communityDescription", community.getDescription());
-        intent.putExtra("memberCount", community.getMemberCount());
-        intent.putExtra("postCount", community.getPostCount());
-        startActivity(intent); // Launch community detail activity
-    }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_EDIT_COMMUNITY_REQUEST && resultCode == RESULT_OK && data != null) {
-            String communityName = data.getStringExtra("communityName");
-            String communityDescription = data.getStringExtra("communityDescription");
+// Temporary method to generate a list of communities
+    private List<Community> getTemporaryCommunities() {
+        List<Community> communities = new ArrayList<>();
 
-            // Create new community
-            Community newCommunity = new Community(communityName, communityDescription, 1, 0, new User("CreatorUser", R.drawable.placeholder_image));
-            newCommunity.joinCommunity(); // Simulate joining the new community
-            myCommunityList.add(newCommunity); // Add to my community list
+        // Temporary User objects for creator
+        User alice = new User("Alice", R.drawable.placeholder_image);
+        User john = new User("John", R.drawable.placeholder_image);
+        User sarah = new User("Sarah", R.drawable.placeholder_image);
 
-            // Notify the adapter of data changes
-            communityAdapter.notifyDataSetChanged();
-        }
-    }
+        // Adding temporary community objects
+        communities.add(new Community("Tech Enthusiasts", "A community for tech lovers", 1200, 150, alice));
+        communities.add(new Community("Book Club", "For bookworms and literature enthusiasts", 800, 50, john));
+        communities.add(new Community("Fitness Freaks", "Community for fitness and health enthusiasts", 500, 30, sarah));
+        communities.add(new Community("Music Lovers", "A place for music fans and artists", 600, 120, john));
+        communities.add(new Community("Gamers United", "All things gaming and eSports", 1400, 200, alice));
 
-    private void loadMyCommunities() {
-        // Simulate loading communities the user has joined
-        // Create a sample User object
-        User creator = new User("CreatorUser", R.drawable.placeholder_image); // Replace with a valid image resource ID
-
-        // Add communities that the user has joined
-        Community community1 = new Community("Tech Enthusiasts", "A community for tech lovers.", 10, 5, creator);
-        community1.joinCommunity(); // Simulating user joining the community
-        myCommunityList.add(community1);
-
-        Community community2 = new Community("Music Fans", "Share and discuss your favorite music.", 8, 3, creator);
-        community2.joinCommunity(); // Simulating user joining the community
-        myCommunityList.add(community2);
-
-        Community community3 = new Community("Fitness Freaks", "A group for fitness enthusiasts.", 12, 7, creator);
-        community3.joinCommunity(); // Simulating user joining the community
-        myCommunityList.add(community3);
+        return communities;
     }
 }
