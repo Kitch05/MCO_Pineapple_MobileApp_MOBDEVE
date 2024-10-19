@@ -12,30 +12,37 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pineapple"
         tools:targetApi="31">
+
+        <activity
+            android:name=".Login"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false" />
         <activity
             android:name=".MyCommunities"
             android:exported="false" />
         <activity
             android:name=".CommunityActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".AddEditCommunityActivity"
             android:exported="false" />
-
         <activity
-            android:name=".Profile"
+            android:name=".ProfileActivity"
             android:exported="false" />
         <activity
             android:name=".Registration"
-            android:exported="true" />
-        <activity
-            android:name=".Login"
             android:exported="true" />
         <activity
             android:name=".MainActivity"
@@ -45,6 +52,8 @@
         <activity
             android:name=".CommunityDetailActivity"
             android:exported="true" />
+        <activity android:name=".Inbox"></activity>
+
     </application>
 
 </manifest>

@@ -143,28 +143,23 @@ public class CommunityDetailActivity extends AppCompatActivity {
             int position = data.getIntExtra("position", -1);
 
             if (requestCode == ADD_POST_REQUEST_CODE) {
-                // Add new post to the list and notify the adapter
                 postList.add(new Post(postTitle, postContent, new User("User", R.drawable.placeholder_image), community.getName()));
                 postAdapter.notifyItemInserted(postList.size() - 1);
 
-                // Increment post count and update the TextView
                 postCount++;
-                community.setPostCount(postCount); // Update community post count
+                community.setPostCount(postCount);
                 postCountTextView.setText(String.valueOf(postCount));
             } else if (requestCode == EDIT_POST_REQUEST_CODE && position != -1) {
-                // Update the existing post and notify the adapter
                 Post post = postList.get(position);
                 post.setTitle(postTitle);
                 post.setContent(postContent);
                 postAdapter.notifyItemChanged(position);
             } else if (requestCode == EDIT_COMMUNITY_REQUEST_CODE) {
-                // Update community details
                 String updatedName = data.getStringExtra("communityName");
                 String updatedDescription = data.getStringExtra("communityDescription");
                 community.setName(updatedName);
                 community.setDescription(updatedDescription);
 
-                // Update UI with new details
                 communityNameTextView.setText(updatedName);
                 communityDescriptionTextView.setText(updatedDescription);
             }

@@ -15,7 +15,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends BaseActivity { // Extend BaseActivity instead of AppCompatActivity
+public class MainActivity extends BaseActivity {
 
     ActivityMainBinding binding;
     BottomNavigationView navbar;
@@ -29,7 +29,6 @@ public class MainActivity extends BaseActivity { // Extend BaseActivity instead 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Instead of setContentView(), use the method to set the layout in BaseActivity
         setActivityLayout(R.layout.activity_main);
 
         recyclerView = findViewById(R.id.contentContainer);
@@ -62,7 +61,7 @@ public class MainActivity extends BaseActivity { // Extend BaseActivity instead 
                             Post post = postList.get(position);
                             post.setTitle(title);
                             post.setContent(content);
-                            post.setCommunity(community); // Set the updated community
+                            post.setCommunity(community);
                             postAdapter.notifyItemChanged(position);
                         }
                         recyclerView.scrollToPosition(0);

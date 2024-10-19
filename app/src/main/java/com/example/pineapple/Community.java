@@ -4,12 +4,11 @@ public class Community{
     private String name;
     private String description;
 
-    private int memberCount; // Optional: initialize with 0
-    private int postCount;   // Optional: initialize with 0
-    private final User creator; // Optional: this could also be set later if needed
+    private int memberCount;
+    private int postCount;
+    private final User creator;
     private boolean isJoined;
 
-    // Constructor for creating a community with name and description only
     public Community(String name, String description) {
         this.name = name;
         this.description = description;
@@ -19,17 +18,15 @@ public class Community{
         this.isJoined = false;
     }
 
-    // Full constructor if you want to provide more details
     public Community(String name, String description, int memberCount, int postCount, User creator) {
         this.name = name;
         this.description = description;
         this.memberCount = memberCount;
         this.postCount = postCount;
         this.creator = creator;
-        this.isJoined = false; // By default, the user is not a member
+        this.isJoined = false;
     }
 
-    // Getters
     public String getName() {
         return name;
     }
@@ -70,7 +67,6 @@ public class Community{
         this.postCount = postCount;
     }
 
-    // Methods to join or leave the community
     public synchronized void joinCommunity() {
         if (!isJoined) {
             isJoined = true;
@@ -87,7 +83,6 @@ public class Community{
         }
     }
 
-    // Method to toggle membership status
     public synchronized void toggleMembership() {
         if (isJoined) {
             leaveCommunity();

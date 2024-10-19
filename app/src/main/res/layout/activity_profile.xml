@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Profile"
+    tools:context=".ProfileActivity"
     android:background="@color/primary">
 
     <LinearLayout
@@ -20,19 +20,19 @@
             android:src="@drawable/leftarrow"
             android:contentDescription="Home"
             android:layout_marginEnd="16dp"
-            android:layout_margin="10sp"/>
+            android:layout_margin="10sp"
+            android:onClick="back"/>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="260dp"
             android:orientation="vertical"
             android:gravity="bottom">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="100dp"
+                app:cardCornerRadius="50dp"
                 app:cardBackgroundColor="@color/contrast"
                 android:padding="2dp"
                 app:cardPreventCornerOverlap="false"
@@ -48,6 +48,15 @@
 
             </androidx.cardview.widget.CardView>
 
+            <Button
+                android:id="@+id/editProfileButton"
+                android:layout_width="100dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:text="Edit profile"
+                android:textSize="10dp"
+                android:onClick="editProfile"/>
+
             <TextView
                 android:id="@+id/userName"
                 android:layout_width="wrap_content"
@@ -59,6 +68,7 @@
                 android:layout_margin="10dp"/>
 
             <TextView
+                android:id="@+id/userDescription"
                 android:layout_width="300dp"
                 android:layout_height="wrap_content"
                 android:textSize="12sp"

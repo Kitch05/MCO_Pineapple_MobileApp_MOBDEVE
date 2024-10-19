@@ -18,23 +18,18 @@ public class Inbox extends BaseActivity {
         super.onCreate(savedInstanceState);
         setActivityLayout(R.layout.activity_inbox);
 
-        // Initialize the RecyclerView
         inboxRecyclerView = findViewById(R.id.inbox_recyclerview);
         inboxRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Load forum inbox items (e.g., messages, thread replies, notifications)
         inboxItemList = getInboxItems();
 
-        // Set up the adapter
         inboxAdapter = new InboxAdapter(this, inboxItemList);
         inboxRecyclerView.setAdapter(inboxAdapter);
     }
 
-    // Temporary method to populate inbox with dummy data
     private List<ForumInboxItem> getInboxItems() {
         List<ForumInboxItem> items = new ArrayList<>();
 
-        // Sample inbox items with full message content
         items.add(new ForumInboxItem("Admin", "Welcome to the forum!", "10:00 AM", "We're glad to have you here. If you have any questions, feel free to ask!", false));
         items.add(new ForumInboxItem("User123", "Replied to your thread: Android Development", "9:30 AM", "I think you should consider using Kotlin for your Android development!", true));
         items.add(new ForumInboxItem("ModBot", "Your post was approved", "Yesterday", "Your recent post has been approved and is now visible to all users.", true));
