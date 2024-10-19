@@ -38,7 +38,8 @@
         android:layout_margin="16dp"
         android:background="#1ED760"
         android:text="Add"
-        android:textColor="#F1F6F9" />
+        android:textColor="#F1F6F9"
+        android:visibility="invisible"/>
 
     <include
         android:id="@+id/footer"

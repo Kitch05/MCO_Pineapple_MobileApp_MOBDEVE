@@ -13,10 +13,10 @@
         android:id="@+id/contentFrame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/headerLayout" />
+        android:layout_below="@+id/headerLayout"/>
 
     <!-- Include the footer layout -->
     <include
         android:id="@+id/footerLayout"
-        layout="@layout/footer" />
+        layout="@layout/footer"/>
 </RelativeLayout>

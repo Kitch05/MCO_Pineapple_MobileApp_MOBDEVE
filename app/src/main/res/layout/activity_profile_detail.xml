@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ProfileDetailActivity">
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/primary">
+
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/leftarrow"
+            android:contentDescription="Home"
+            android:layout_marginEnd="16dp"
+            android:layout_margin="10sp"
+            android:onClick="back"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="50dp"
+            app:cardBackgroundColor="@color/contrast"
+            android:padding="2dp"
+            app:cardPreventCornerOverlap="false"
+            android:layout_gravity="center"
+            android:layout_marginBottom="30dp">
+
+            <ImageSwitcher
+                android:id="@+id/profilePic"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"/>
+
+        </androidx.cardview.widget.CardView>
+        
+        <EditText
+            android:id="@+id/editUsername"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="24dp"
+            android:layout_marginBottom="30dp"
+            android:background="@color/secondary"/>
+
+        <EditText
+            android:id="@+id/editDescription"
+            android:layout_width="300dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:background="@color/secondary"
+            android:layout_marginBottom="30dp"/>
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="100dp"
+            android:layout_height="45dp"
+            android:background="@color/accent"
+            android:layout_gravity="center"
+            android:text="Save"
+            android:textSize="20dp"
+            android:onClick="saveProfileChanges"/>
+        
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

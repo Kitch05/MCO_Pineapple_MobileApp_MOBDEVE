@@ -48,6 +48,15 @@
 
             </androidx.cardview.widget.CardView>
 
+            <Button
+                android:id="@+id/editProfileButton"
+                android:layout_width="100dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:text="Edit profile"
+                android:textSize="10dp"
+                android:onClick="editProfile"/>
+
             <TextView
                 android:id="@+id/userName"
                 android:layout_width="wrap_content"

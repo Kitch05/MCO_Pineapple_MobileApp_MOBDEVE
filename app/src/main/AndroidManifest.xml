@@ -13,6 +13,9 @@
         android:theme="@style/Theme.Pineapple"
         tools:targetApi="31">
         <activity
+            android:name=".ProfileDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".MyCommunities"
             android:exported="false" />
         <activity
@@ -27,7 +30,6 @@
         <activity
             android:name=".AddEditCommunityActivity"
             android:exported="false" />
-
         <activity
             android:name=".Profile"
             android:exported="false" />
