@@ -144,7 +144,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
             if (requestCode == ADD_POST_REQUEST_CODE) {
                 // Add new post to the list and notify the adapter
-                postList.add(new Post(postTitle, postContent, new User("User", R.drawable.placeholder_image)));
+                postList.add(new Post(postTitle, postContent, new User("User", R.drawable.placeholder_image), community.getName()));
                 postAdapter.notifyItemInserted(postList.size() - 1);
 
                 // Increment post count and update the TextView

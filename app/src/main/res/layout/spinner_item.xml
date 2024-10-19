@@ -1,0 +1,8 @@
+<!-- spinner_item.xml -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textColor="#F1F6F9"
+    android:padding="10dp"
+    android:textSize="15sp"
+    android:background="#232428" /> <!-- Set grey background similar to the grey in your layout -->
