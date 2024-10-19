@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pineapple.databinding.ActivityMainBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     ActivityMainBinding binding;
+    BottomNavigationView navbar;
     private RecyclerView recyclerView;
     private PostAdapter postAdapter;
     private List<Post> postList;

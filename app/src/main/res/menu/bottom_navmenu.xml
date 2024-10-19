@@ -3,17 +3,22 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item android:title="Home"
+        android:id="@+id/home"
         android:icon="@drawable/home"/>
 
     <item android:title="Communities"
+        android:id="@+id/community"
         android:icon="@drawable/community"/>
 
     <item android:title="Post"
+        android:id="@+id/addPost"
         android:icon="@drawable/edit"/>
 
     <item android:title="Inbox"
+        android:id="@+id/inbox"
         android:icon="@drawable/inbox"/>
 
     <item android:title="Notification"
+        android:id="@+id/notifs"
         android:icon="@drawable/no_notifications"/>
 </menu>
