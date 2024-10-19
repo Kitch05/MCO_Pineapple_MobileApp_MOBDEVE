@@ -10,6 +10,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.List;
+
 public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.CommunityViewHolder> {
 
     private List<Community> communityList;
@@ -38,21 +48,22 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
 
         // Set up join button functionality
         holder.joinButton.setText(community.isJoined() ? "Joined" : "Join");
-        holder.joinButton.setEnabled(true); // Always enable the button
 
         holder.joinButton.setOnClickListener(v -> {
             if (community.isJoined()) {
-                community.leaveCommunity(); // Unjoin if already joined
+                community.leaveCommunity();
                 holder.joinButton.setText("Join");
             } else {
-                community.joinCommunity(); // Join if not joined
+                community.joinCommunity();
                 holder.joinButton.setText("Joined");
             }
         });
 
-        // Set up click listener for the item view
+        // Safely check if the context is an instance of CommunityActivity
         holder.itemView.setOnClickListener(v -> {
-            ((CommunityActivity) context).setCurrentCommunityPosition(position); // Update the current community position
+            if (context instanceof CommunityActivity) {
+                ((CommunityActivity) context).setCurrentCommunityPosition(position);
+            }
             onCommunityClickListener.onCommunityClick(position);
         });
     }
@@ -65,13 +76,13 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
     public static class CommunityViewHolder extends RecyclerView.ViewHolder {
         TextView textViewName;
         TextView textViewDescription;
-        Button joinButton; // Add join button
+        Button joinButton;
 
         public CommunityViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewName = itemView.findViewById(R.id.communityName);
             textViewDescription = itemView.findViewById(R.id.communityDescription);
-            joinButton = itemView.findViewById(R.id.joinCommunityButton); // Initialize join button
+            joinButton = itemView.findViewById(R.id.joinCommunityButton);
         }
     }
 

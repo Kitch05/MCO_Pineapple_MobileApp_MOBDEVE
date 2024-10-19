@@ -1,6 +1,6 @@
 package com.example.pineapple;
 
-public class Community {
+public class Community{
     private final String name;
     private final String description;
     private int memberCount; // Optional: initialize with 0
