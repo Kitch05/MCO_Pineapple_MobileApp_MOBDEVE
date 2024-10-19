@@ -77,7 +77,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         navNotifs.setOnClickListener( v -> {
-            Intent intent = new Intent(BaseActivity.this, MainActivity.class);
+            Intent intent = new Intent(BaseActivity.this, NotificationsActivity.class);
             startActivity(intent);
         });
     }
