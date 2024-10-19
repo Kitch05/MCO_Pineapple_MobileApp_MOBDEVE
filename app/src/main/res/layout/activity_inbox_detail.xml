@@ -1,0 +1,42 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#111214">
+
+    <!-- Back Button -->
+    <ImageView
+        android:id="@+id/backButton"
+        android:layout_width="40dp"
+        android:layout_height="41dp"
+        android:layout_gravity="start"
+        android:contentDescription="Back"
+        android:padding="8dp"
+        android:src="@drawable/back"
+        app:tint="#F1F6F9" />
+
+    <!-- Sender's Name Display -->
+    <TextView
+        android:id="@+id/senderName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="From: Sender Name"
+        android:textSize="18sp"
+        android:textColor="#F1F6F9"
+        android:paddingTop="10dp"
+        android:paddingBottom="5dp"
+        android:textStyle="bold" />
+
+    <!-- Message Content Display -->
+    <TextView
+        android:id="@+id/messageContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="This is the detailed message content"
+        android:textSize="16sp"
+        android:textColor="#F1F6F9"
+        android:paddingTop="20dp"
+        android:paddingBottom="20dp" />
+</LinearLayout>
