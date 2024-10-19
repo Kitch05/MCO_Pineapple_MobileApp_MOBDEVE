@@ -36,6 +36,10 @@
             android:exported="true">
         </activity>
         <activity
+            android:name=".InboxDetailActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".AddEditCommunityActivity"
             android:exported="false" />
         <activity
