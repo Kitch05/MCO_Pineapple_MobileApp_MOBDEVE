@@ -29,6 +29,18 @@
         android:layout_gravity="center_horizontal"/>
 
     <EditText
+        android:id="@+id/username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Username"
+        android:textColor="#F1F6F9"
+        android:textColorHint="#A9A9A9"
+        android:backgroundTint="#232428"
+        android:padding="10dp"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif" />
+
+    <EditText
         android:id="@+id/email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
