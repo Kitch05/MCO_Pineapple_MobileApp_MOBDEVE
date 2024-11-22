@@ -11,27 +11,33 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.text.method.PasswordTransformationMethod;
 import android.text.method.HideReturnsTransformationMethod;
+import android.util.Patterns;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 public class Registration extends AppCompatActivity {
 
-    private EditText usernameEditText;
     private EditText passwordEditText;
     private EditText emailEditText;
     private EditText confirmPasswordEditText;
     private boolean isPasswordVisible = false;
     private boolean isConfirmPasswordVisible = false;
 
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
 
-        usernameEditText = findViewById(R.id.username);
-        passwordEditText = findViewById(R.id.password);
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
         emailEditText = findViewById(R.id.email);
+        passwordEditText = findViewById(R.id.password);
         confirmPasswordEditText = findViewById(R.id.confirm_password);
         Button signupButton = findViewById(R.id.signup_button);
         TextView loginLink = findViewById(R.id.login_link);
@@ -42,10 +48,26 @@ public class Registration extends AppCompatActivity {
 
         signupButton.setOnClickListener(v -> {
             if (validateForm()) {
-                Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show();
+                String email = emailEditText.getText().toString().trim();
+                String password = passwordEditText.getText().toString().trim();
 
-                Intent intent = new Intent(Registration.this, Login.class);
-                startActivity(intent);
+                // Firebase registration logic
+                mAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(this, task -> {
+                            if (task.isSuccessful()) {
+                                // Registration success
+                                FirebaseUser user = mAuth.getCurrentUser();
+                                Toast.makeText(Registration.this, "Registration Successful", Toast.LENGTH_SHORT).show();
+
+                                // Navigate to login page
+                                Intent intent = new Intent(Registration.this, Login.class);
+                                startActivity(intent);
+                                finish();  // Finish the registration activity
+                            } else {
+                                // Registration failure
+                                Toast.makeText(Registration.this, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
             }
         });
 
@@ -80,19 +102,22 @@ public class Registration extends AppCompatActivity {
     }
 
     private boolean validateForm() {
-        String username = usernameEditText.getText().toString().trim();
-        String password = passwordEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
-        if (TextUtils.isEmpty(username) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+        if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show();
             return false;
         }
 
-        String usernameFormat = "^[a-zA-Z0-9]+$";
-        if (!username.matches(usernameFormat)) {
-            Toast.makeText(this, "Username can only contain alphanumeric characters", Toast.LENGTH_SHORT).show();
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Not a Valid Email Address", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+
+        if (password.length() < 6) {
+            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
             return false;
         }
 
