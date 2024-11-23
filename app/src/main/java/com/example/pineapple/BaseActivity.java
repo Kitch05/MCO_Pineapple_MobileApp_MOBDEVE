@@ -56,7 +56,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         navCommunity.setOnClickListener(v -> {
-            Intent intent = new Intent(BaseActivity.this, MyCommunities.class);
+            Intent intent = new Intent(BaseActivity.this, CommunityActivity.class);
             startActivity(intent);
         });
 

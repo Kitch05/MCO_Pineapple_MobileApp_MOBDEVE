@@ -1,30 +1,43 @@
 package com.example.pineapple;
 
-public class Community{
+import com.google.firebase.firestore.Exclude;
+
+public class Community {
+    private String id; // Firestore document ID
     private String name;
     private String description;
-
     private int memberCount;
     private int postCount;
-    private final User creator;
     private boolean isJoined;
+
+    public Community() {
+        // Required for Firestore deserialization
+    }
 
     public Community(String name, String description) {
         this.name = name;
         this.description = description;
         this.memberCount = 0;
         this.postCount = 0;
-        this.creator = null;
         this.isJoined = false;
     }
 
-    public Community(String name, String description, int memberCount, int postCount, User creator) {
+    public Community(String id, String name, String description, int memberCount, int postCount) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.memberCount = memberCount;
         this.postCount = postCount;
-        this.creator = creator;
         this.isJoined = false;
+    }
+
+    @Exclude
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -43,51 +56,42 @@ public class Community{
         return postCount;
     }
 
-    public User getCreator() {
-        return creator;
-    }
-
     public boolean isJoined() {
         return isJoined;
     }
 
-    // Setters
     public void setMemberCount(int memberCount) {
         this.memberCount = memberCount;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
     public void setPostCount(int postCount) {
         this.postCount = postCount;
     }
 
-    public synchronized void joinCommunity() {
+    public void setJoined(boolean joined) {
+        isJoined = joined;
+    }
+
+    public void setName(String updatedName) {
+        this.name = updatedName;
+    }
+
+    public void setDescription(String updatedDescription) {
+        this.description = updatedDescription;
+    }
+
+    public void joinCommunity() {
         if (!isJoined) {
-            isJoined = true;
-            memberCount++;
+            isJoined = true;  // Mark the user as a member
+            memberCount++;  // Increase the member count
         }
     }
 
-    public synchronized void leaveCommunity() {
+    public void leaveCommunity() {
         if (isJoined) {
-            isJoined = false;
-            if (memberCount > 0) {
-                memberCount--;
-            }
+            isJoined = false;  // Mark the user as not a member
+            memberCount--;  // Decrease the member count
         }
     }
 
-    public synchronized void toggleMembership() {
-        if (isJoined) {
-            leaveCommunity();
-        } else {
-            joinCommunity();
-        }
-    }
 }

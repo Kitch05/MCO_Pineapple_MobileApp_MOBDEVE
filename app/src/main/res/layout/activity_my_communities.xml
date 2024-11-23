@@ -12,7 +12,7 @@
         android:layout_centerHorizontal="true"
         android:text="My Communities"
         android:textColor="#F1F6F9"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
     <!-- Search Bar -->
@@ -33,9 +33,11 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/myCommunityContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@id/searchBar"
-        android:padding="16dp"
+        android:layout_marginBottom="16dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
         android:scrollbars="vertical" />
 
 </RelativeLayout>

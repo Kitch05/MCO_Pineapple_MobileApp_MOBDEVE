@@ -1,6 +1,7 @@
 package com.example.pineapple;
 
 public class Post {
+    private String id;
     private String title;
     private String content;
     private User user;
@@ -74,5 +75,9 @@ public class Post {
 
     public void downvote() {
         downvoteCount++;
+    }
+
+    public String getId() {
+        return id;
     }
 }
