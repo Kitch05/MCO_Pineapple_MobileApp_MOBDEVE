@@ -3,14 +3,18 @@ package com.example.pineapple;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pineapple.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,23 +29,32 @@ public class MainActivity extends BaseActivity {
     private Button addPostButton;
     private ActivityResultLauncher<Intent> addEditPostLauncher;
 
+    // Firestore instance and collection reference
+    private FirebaseFirestore db;
+    private CollectionReference postsCollection;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setActivityLayout(R.layout.activity_main);
 
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance();
+        postsCollection = db.collection("posts");
+
         recyclerView = findViewById(R.id.contentContainer);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         postList = new ArrayList<>();
-        loadPosts();
-
         postAdapter = new PostAdapter(this, postList, this::launchEditPost, this::launchPostDetail);
         recyclerView.setAdapter(postAdapter);
 
         addPostButton = findViewById(R.id.addPostButton);
         addPostButton.setOnClickListener(v -> launchAddPost());
+
+        // Load posts from Firestore
+        loadPostsFromFirestore();
 
         addEditPostLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -50,21 +63,20 @@ public class MainActivity extends BaseActivity {
                         Intent data = result.getData();
                         String title = data.getStringExtra("title");
                         String content = data.getStringExtra("content");
-                        String community = data.getStringExtra("community"); // Getting community
+                        String community = data.getStringExtra("community");
+                        String userId = data.getStringExtra("userId"); // Assume userId is passed
                         int position = data.getIntExtra("position", -1);
 
                         if (position == -1) {
-                            User defaultUser = new User("Default User", R.drawable.placeholder_image);
-                            postList.add(0, new Post(title, content, defaultUser, community));
-                            postAdapter.notifyItemInserted(0);
+                            Post newPost = new Post(title, content, userId, community);
+                            savePostToFirestore(newPost);
                         } else {
                             Post post = postList.get(position);
                             post.setTitle(title);
                             post.setContent(content);
                             post.setCommunity(community);
-                            postAdapter.notifyItemChanged(position);
+                            updatePostInFirestore(post);
                         }
-                        recyclerView.scrollToPosition(0);
                     }
                 }
         );
@@ -80,8 +92,9 @@ public class MainActivity extends BaseActivity {
         Intent intent = new Intent(MainActivity.this, AddEditPostActivity.class);
         intent.putExtra("title", post.getTitle());
         intent.putExtra("content", post.getContent());
-        intent.putExtra("community", post.getCommunity()); // Pass the community to edit
+        intent.putExtra("community", post.getCommunity());
         intent.putExtra("position", position);
+        intent.putExtra("userId", post.getUserId());
         addEditPostLauncher.launch(intent);
     }
 
@@ -90,19 +103,52 @@ public class MainActivity extends BaseActivity {
         Intent intent = new Intent(MainActivity.this, PostDetailActivity.class);
         intent.putExtra("title", post.getTitle());
         intent.putExtra("content", post.getContent());
-        intent.putExtra("username", post.getUser().getName());
-        intent.putExtra("profilePicture", post.getUser().getProfilePicture());
-        intent.putExtra("community", post.getCommunity()); // Pass the community to details
+        intent.putExtra("community", post.getCommunity());
+        intent.putExtra("userId", post.getUserId());
         startActivity(intent);
     }
 
-    private void loadPosts() {
-        int placeholderProfilePicture = R.drawable.placeholder_image;
-        User user1 = new User("Alice Smith", placeholderProfilePicture);
-        User user2 = new User("John Doe", placeholderProfilePicture);
+    private void loadPostsFromFirestore() {
+        postsCollection.get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    postList.clear();
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Post post = document.toObject(Post.class);
+                        post.setId(document.getId()); // Save document ID for updates
+                        postList.add(post);
+                    }
+                    postAdapter.notifyDataSetChanged();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error loading posts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
 
-        postList.add(new Post("Post Title 1", "This is the content of the first post.", user1, "Tech Enthusiasts"));
-        postList.add(new Post("Post Title 2", "This is the content of the second post.", user2, "Photography Lovers"));
-        postList.add(new Post("Post Title 3", "This is the content of the third post.", user1, "Foodies"));
+    private void savePostToFirestore(Post post) {
+        postsCollection.add(post)
+                .addOnSuccessListener(documentReference -> {
+                    post.setId(documentReference.getId());
+                    postList.add(0, post);
+                    postAdapter.notifyItemInserted(0);
+                    recyclerView.scrollToPosition(0);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to save post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updatePostInFirestore(Post post) {
+        postsCollection.document(post.getId())
+                .set(post)
+                .addOnSuccessListener(aVoid -> {
+                    int position = postList.indexOf(post);
+                    if (position != -1) {
+                        postAdapter.notifyItemChanged(position);
+                    }
+                    Toast.makeText(this, "Post updated successfully!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to update post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

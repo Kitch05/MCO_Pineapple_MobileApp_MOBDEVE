@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +78,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
         // Add post button logic
         addPostButton.setOnClickListener(v -> {
             Intent addPostIntent = new Intent(CommunityDetailActivity.this, AddEditPostActivity.class);
+            addPostIntent.putExtra("communityId", communityId);
             startActivityForResult(addPostIntent, ADD_POST_REQUEST_CODE);
         });
 
@@ -93,41 +93,39 @@ public class CommunityDetailActivity extends AppCompatActivity {
         backButton.setOnClickListener(v -> onBackPressed());
 
         // Join/Leave button logic
-        updateJoinLeaveButtonText();
-        joinLeaveButton.setOnClickListener(v -> {
-            toggleMembership();
-        });
+        joinLeaveButton.setOnClickListener(v -> toggleMembership(communityId));
     }
 
     private void fetchCommunityData(String communityId) {
-        // Fetch the community document from Firestore
         DocumentReference communityRef = db.collection("community").document(communityId);
         communityRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                // Get the community data
-                if (task.getResult() != null) {
-                    String name = task.getResult().getString("name");
-                    String description = task.getResult().getString("description");
-                    memberCount = task.getResult().getLong("memberCount").intValue();
-                    postCount = task.getResult().getLong("postCount").intValue();
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    // Initialize Community object
+                    community = document.toObject(Community.class);
+                    if (community != null) {
+                        community.setId(communityId);
+                        communityNameTextView.setText(community.getName());
+                        communityDescriptionTextView.setText(community.getDescription());
+                        memberCount = community.getMemberCount();
+                        postCount = community.getPostCount();
 
-                    // Set community details
-                    communityNameTextView.setText(name);
-                    communityDescriptionTextView.setText(description);
-                    memberCountTextView.setText(String.valueOf(memberCount));
-                    postCountTextView.setText(String.valueOf(postCount));
+                        memberCountTextView.setText(String.valueOf(memberCount));
+                        postCountTextView.setText(String.valueOf(postCount));
 
-                    // Fetch posts
-                    fetchPosts(communityId);
+                        updateJoinLeaveButtonText();
+                        fetchPosts(communityId);
+                    }
                 }
             } else {
                 Log.e("CommunityDetailActivity", "Error fetching community data", task.getException());
+                Toast.makeText(this, "Failed to load community details.", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void fetchPosts(String communityId) {
-        // Fetch posts from the "posts" subcollection
         db.collection("community")
                 .document(communityId)
                 .collection("posts")
@@ -136,10 +134,11 @@ public class CommunityDetailActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         postList.clear();
                         for (DocumentSnapshot document : task.getResult()) {
-                            String title = document.getString("title");
-                            String content = document.getString("content");
-                            String author = document.getString("author");
-                            postList.add(new Post(title, content, new User(author, R.drawable.placeholder_image), communityId));
+                            Post post = document.toObject(Post.class);
+                            if (post != null) {
+                                post.setId(document.getId());
+                                postList.add(post);
+                            }
                         }
                         postAdapter.notifyDataSetChanged();
                     } else {
@@ -148,17 +147,19 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 });
     }
 
-    private void toggleMembership() {
-        // Here you can update the membership status in Firestore and update UI accordingly
-        boolean isJoined = !community.isJoined(); // Toggle membership
+    private void toggleMembership(String communityId) {
+        boolean isJoined = !community.isJoined();
         community.setJoined(isJoined);
         memberCount = isJoined ? memberCount + 1 : memberCount - 1;
+
+        // Update UI
         memberCountTextView.setText(String.valueOf(memberCount));
         updateJoinLeaveButtonText();
 
-        // Update Firestore membership
-        DocumentReference communityRef = db.collection("community").document(community.getId());
-        communityRef.update("memberCount", memberCount);
+        // Update Firestore
+        DocumentReference communityRef = db.collection("community").document(communityId);
+        communityRef.update("memberCount", memberCount, "isJoined", isJoined)
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update membership.", Toast.LENGTH_SHORT).show());
     }
 
     private void updateJoinLeaveButtonText() {
@@ -176,6 +177,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
         Post post = postList.get(position);
         Intent editPostIntent = new Intent(CommunityDetailActivity.this, AddEditPostActivity.class);
         editPostIntent.putExtra("postId", post.getId());
+        editPostIntent.putExtra("communityId", community.getId());
         startActivityForResult(editPostIntent, EDIT_POST_REQUEST_CODE);
     }
 
@@ -195,7 +197,9 @@ public class CommunityDetailActivity extends AppCompatActivity {
             if (requestCode == ADD_POST_REQUEST_CODE) {
                 String postTitle = data.getStringExtra("title");
                 String postContent = data.getStringExtra("content");
-                postList.add(new Post(postTitle, postContent, new User("User", R.drawable.placeholder_image), community.getId()));
+                String userId = data.getStringExtra("userId"); // Assuming userId is passed
+                Post newPost = new Post(postTitle, postContent, userId, community.getId());
+                postList.add(newPost);
                 postAdapter.notifyItemInserted(postList.size() - 1);
 
                 postCount++;

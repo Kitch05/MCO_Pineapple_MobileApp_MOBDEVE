@@ -18,6 +18,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Registration extends AppCompatActivity {
 
     private EditText passwordEditText;
@@ -107,16 +110,20 @@ public class Registration extends AppCompatActivity {
     }
 
     private void saveUserToFirestore(FirebaseUser user, String username, String email) {
-        // Create a map with the username and email
-        db.collection("users").document(user.getUid())  // Use the Firebase UID as document ID
-                .set(new User(username, email))  // Save the username and email in Firestore
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("username", username);
+        userData.put("email", email);
+
+        db.collection("users").document(user.getUid())
+                .set(userData)
                 .addOnSuccessListener(aVoid -> {
-                    // Successfully saved user data to Firestore
+                    // User saved successfully
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(Registration.this, "Error saving user data", Toast.LENGTH_SHORT).show();
                 });
     }
+
 
     private boolean validateForm() {
         String email = emailEditText.getText().toString().trim();
