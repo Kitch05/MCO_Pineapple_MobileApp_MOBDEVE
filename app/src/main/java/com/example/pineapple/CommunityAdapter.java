@@ -77,4 +77,12 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
     public interface OnCommunityClickListener {
         void onCommunityClick(int position);
     }
+
+    public void updateList(List<Community> newList) {
+        communityList.clear();
+        communityList.addAll(newList);
+        notifyDataSetChanged();
+    }
+
+
 }

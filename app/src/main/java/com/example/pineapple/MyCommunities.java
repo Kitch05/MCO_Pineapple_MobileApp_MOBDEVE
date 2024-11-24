@@ -2,6 +2,8 @@ package com.example.pineapple;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -29,6 +31,8 @@ public class MyCommunities extends BaseActivity {
     private FirebaseFirestore db;
     private static final int ADD_EDIT_COMMUNITY_REQUEST = 1;
 
+    private List<Community> originalCommunityList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,16 +43,63 @@ public class MyCommunities extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         myCommunityList = new ArrayList<>();
+        originalCommunityList = new ArrayList<>(); // Holds the unfiltered list
         communityAdapter = new CommunityAdapter(this, myCommunityList, this::launchCommunityDetail);
         recyclerView.setAdapter(communityAdapter);
 
         searchBar = findViewById(R.id.searchBar);
+
+        // Add TextWatcher for search functionality
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No action needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterCommunities(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // No action needed
+            }
+        });
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
         loadMyCommunities();
     }
+
+    private void filterCommunities(String query) {
+        if (query.isEmpty()) {
+            // Reset the main list to the full list
+            myCommunityList.clear();
+            myCommunityList.addAll(originalCommunityList);
+        } else {
+            // Filter the original list
+            List<Community> filteredList = new ArrayList<>();
+            for (Community community : originalCommunityList) {
+                if (community.getName().toLowerCase().contains(query.toLowerCase())) {
+                    filteredList.add(community);
+                }
+            }
+
+            // Show Toast for debugging
+            if (filteredList.isEmpty()) {
+                Toast.makeText(this, "No communities found for: " + query, Toast.LENGTH_SHORT).show();
+            }
+
+            myCommunityList.clear();
+            myCommunityList.addAll(filteredList);
+        }
+
+        // Notify the adapter of data changes
+        communityAdapter.notifyDataSetChanged();
+    }
+
 
     private void loadMyCommunities() {
         db.collection("communities")
@@ -65,16 +116,23 @@ public class MyCommunities extends BaseActivity {
                                     community.setId(document.getId());
                                     community.setMemberCount(document.getLong("memberCount").intValue());
                                     community.setPostCount(document.getLong("postCount").intValue());
-                                    myCommunityList.add(community);
+                                    originalCommunityList.add(community); // Populate the original list
                                 }
                             }
+                            myCommunityList.clear();
+                            myCommunityList.addAll(originalCommunityList); // Sync both lists
                             communityAdapter.notifyDataSetChanged();
+
+                            // Toast to confirm data loading
+                            Toast.makeText(this, "Loaded " + originalCommunityList.size() + " communities.", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         Toast.makeText(MyCommunities.this, "Error loading communities.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+
+
 
     private void launchCommunityDetail(int position) {
         Community community = myCommunityList.get(position);
