@@ -49,48 +49,69 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = postData.get(position);
 
-        // Set up click listener for the entire post item
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, PostDetailActivity.class);
-
-            // Ensure post.getId() returns a valid post ID
-            String postId = post.getId();
-            Log.d("PostAdapter", "Passing postId: " + postId); // Add log to debug
-
-            if (postId != null) {
-                intent.putExtra("postId", postId);
-                context.startActivity(intent);
-            } else {
-                Log.e("PostAdapter", "postId is null. Cannot navigate to PostDetailActivity.");
-                Toast.makeText(context, "Error: Unable to load post details.", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Get the current user's ID
-        String currentUserId = FirebaseAuth.getInstance().getUid();
-
-        // Check if the user is the owner of the post
-        if (currentUserId != null && currentUserId.equals(post.getUserId())) {
-            holder.editIcon.setVisibility(View.VISIBLE);
-            holder.editIcon.setOnClickListener(v -> onEditClickListener.onEditClick(holder.getAdapterPosition()));
-        } else {
-            holder.editIcon.setVisibility(View.GONE);
-        }
-
-        // Populate other fields
+        // Populate post data
         holder.textViewTitle.setText(post.getTitle() != null ? post.getTitle() : "No Title");
         holder.textViewContent.setText(post.getContent() != null ? post.getContent() : "No Content");
         holder.textViewCommunity.setText(post.getCommunity() != null ? post.getCommunity() : "Unknown Community");
         holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
         holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
 
-        // Handle votes
+        // Handle username fetching
+        String userId = post.getUserId();
+        if (userId != null && !userId.isEmpty()) {
+            if (userCache.containsKey(userId)) {
+                holder.textViewUsername.setText(userCache.get(userId));
+            } else {
+                fetchAndCacheUsername(userId, holder.textViewUsername);
+            }
+        } else {
+            holder.textViewUsername.setText("Unknown User");
+        }
+
+        // Handle post click for details
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, PostDetailActivity.class);
+            intent.putExtra("postId", post.getId());
+            context.startActivity(intent);
+        });
+
+        // Handle edit button visibility
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId != null && currentUserId.equals(post.getUserId())) {
+            holder.editIcon.setVisibility(View.VISIBLE);
+            holder.editIcon.setOnClickListener(v -> onEditClickListener.onEditClick(position));
+        } else {
+            holder.editIcon.setVisibility(View.GONE);
+        }
+
+        // Handle voting
         holder.upvoteIcon.setOnClickListener(v -> handleVote(holder, post, true));
         holder.downvoteIcon.setOnClickListener(v -> handleVote(holder, post, false));
     }
 
+    private void fetchAndCacheUsername(String userId, TextView usernameView) {
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String username = documentSnapshot.getString("username");
+                        if (username != null) {
+                            userCache.put(userId, username);
+                            usernameView.setText(username);
+                        } else {
+                            usernameView.setText("Unknown User");
+                        }
+                    } else {
+                        usernameView.setText("Unknown User");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    usernameView.setText("Error fetching username");
+                    Log.e("PostAdapter", "Error fetching username", e);
+                });
+    }
+
     private void handleVote(PostViewHolder holder, Post post, boolean isUpvote) {
-        if (isVoting) return; // Prevent further voting if an operation is in progress
+        if (isVoting) return; // Prevent multiple clicks
         isVoting = true;
 
         String currentUserId = FirebaseAuth.getInstance().getUid();
@@ -105,42 +126,24 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        // User has already voted
                         String existingVoteId = querySnapshot.getDocuments().get(0).getId();
                         String existingVoteType = querySnapshot.getDocuments().get(0).getString("voteType");
 
                         if ((isUpvote && "upvote".equals(existingVoteType)) ||
                                 (!isUpvote && "downvote".equals(existingVoteType))) {
                             // Remove the vote
-                            db.collection("votes").document(existingVoteId).delete().addOnSuccessListener(aVoid -> {
-                                if (isUpvote && post.getUpvoteCount() > 0) {
-                                    post.setUpvoteCount(post.getUpvoteCount() - 1);
-                                    holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
-                                } else if (!isUpvote && post.getDownvoteCount() > 0) {
-                                    post.setDownvoteCount(post.getDownvoteCount() - 1);
-                                    holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
-                                }
-                                updatePostVotes(post);
-                                isVoting = false; // Reset voting state
-                            }).addOnFailureListener(e -> isVoting = false);
+                            db.collection("votes").document(existingVoteId).delete()
+                                    .addOnSuccessListener(aVoid -> {
+                                        adjustVoteCounts(holder, post, isUpvote, false);
+                                    })
+                                    .addOnFailureListener(e -> isVoting = false);
                         } else {
                             // Switch vote
                             db.collection("votes").document(existingVoteId).update("voteType", isUpvote ? "upvote" : "downvote")
                                     .addOnSuccessListener(aVoid -> {
-                                        if (isUpvote) {
-                                            post.setUpvoteCount(post.getUpvoteCount() + 1);
-                                            if (post.getDownvoteCount() > 0)
-                                                post.setDownvoteCount(post.getDownvoteCount() - 1);
-                                        } else {
-                                            post.setDownvoteCount(post.getDownvoteCount() + 1);
-                                            if (post.getUpvoteCount() > 0)
-                                                post.setUpvoteCount(post.getUpvoteCount() - 1);
-                                        }
-                                        holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
-                                        holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
-                                        updatePostVotes(post);
-                                        isVoting = false; // Reset voting state
-                                    }).addOnFailureListener(e -> isVoting = false);
+                                        adjustVoteCounts(holder, post, isUpvote, true);
+                                    })
+                                    .addOnFailureListener(e -> isVoting = false);
                         }
                     } else {
                         // Add a new vote
@@ -149,28 +152,39 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                         voteData.put("userId", currentUserId);
                         voteData.put("voteType", isUpvote ? "upvote" : "downvote");
 
-                        db.collection("votes").add(voteData).addOnSuccessListener(aVoid -> {
-                            if (isUpvote) {
-                                post.setUpvoteCount(post.getUpvoteCount() + 1);
-                                holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
-                            } else {
-                                post.setDownvoteCount(post.getDownvoteCount() + 1);
-                                holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
-                            }
-                            updatePostVotes(post);
-                            isVoting = false; // Reset voting state
-                        }).addOnFailureListener(e -> isVoting = false);
+                        db.collection("votes").add(voteData)
+                                .addOnSuccessListener(aVoid -> {
+                                    adjustVoteCounts(holder, post, isUpvote, true);
+                                })
+                                .addOnFailureListener(e -> isVoting = false);
                     }
                 })
                 .addOnFailureListener(e -> isVoting = false); // Reset voting state if query fails
     }
 
-    private void updatePostVotes(Post post) {
+    private void adjustVoteCounts(PostViewHolder holder, Post post, boolean isUpvote, boolean increment) {
+        if (increment) {
+            if (isUpvote) {
+                post.setUpvoteCount(post.getUpvoteCount() + 1);
+                if (post.getDownvoteCount() > 0) post.setDownvoteCount(post.getDownvoteCount() - 1);
+            } else {
+                post.setDownvoteCount(post.getDownvoteCount() + 1);
+                if (post.getUpvoteCount() > 0) post.setUpvoteCount(post.getUpvoteCount() - 1);
+            }
+        } else {
+            if (isUpvote && post.getUpvoteCount() > 0) post.setUpvoteCount(post.getUpvoteCount() - 1);
+            if (!isUpvote && post.getDownvoteCount() > 0) post.setDownvoteCount(post.getDownvoteCount() - 1);
+        }
+
+        // Update Firestore
         db.collection("posts").document(post.getId())
                 .update("upvoteCount", post.getUpvoteCount(), "downvoteCount", post.getDownvoteCount())
-                .addOnFailureListener(e -> {
-                    // Handle error
-                });
+                .addOnSuccessListener(aVoid -> {
+                    holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
+                    holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
+                    isVoting = false;
+                })
+                .addOnFailureListener(e -> isVoting = false);
     }
 
     @Override

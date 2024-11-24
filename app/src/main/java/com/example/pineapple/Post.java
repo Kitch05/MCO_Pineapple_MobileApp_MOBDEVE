@@ -12,6 +12,7 @@ public class Post {
     // Default constructor required for Firestore
     public Post() {}
 
+    // Constructor with all fields
     public Post(String title, String content, String userId, String community) {
         this.title = title;
         this.content = content;
