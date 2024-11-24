@@ -201,16 +201,35 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Comment Input Section Outside CardView -->
+
+    <!-- Comments RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/commentRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:background="#1A1A1A" />
+
+    <!-- Add Comment Section -->
     <EditText
         android:id="@+id/commentInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Add a comment..."
-        android:textColorHint="#B3B3B3"
-        android:textColor="#F1F6F9"
-        android:backgroundTint="#232428"
         android:padding="12dp"
         android:textSize="16sp"
-        android:inputType="textMultiLine" />
+        android:background="#232428"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#A9A9A9" />
+
+    <Button
+        android:id="@+id/submitCommentButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Submit Comment"
+        android:layout_gravity="end"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#6200EE"
+        android:textColor="#FFFFFF" />
 </LinearLayout>

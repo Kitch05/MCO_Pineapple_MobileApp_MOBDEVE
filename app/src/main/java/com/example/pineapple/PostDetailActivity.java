@@ -3,50 +3,80 @@ package com.example.pineapple;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PostDetailActivity extends AppCompatActivity {
-    private TextView upvoteCountTextView, downvoteCountTextView;
-    private ImageView upvoteIcon, downvoteIcon;
-    private int upvoteCount = 0, downvoteCount = 0;
-    private String postId;
-    private boolean isVoting = false;
+    private static final String TAG = "PostDetailActivity";
 
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private TextView postTitle, postContent, postCommunity, postAuthor;
+    private EditText commentInput;
+    private Button submitCommentButton;
+    private RecyclerView commentRecyclerView;
+
+    private String postId;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_post_detail);
 
-        // Get postId from Intent
-        Intent intent = getIntent();
-        postId = intent.getStringExtra("postId");
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance();
 
-        // Log the postId to verify
-        if (postId != null) {
-            Log.d("PostDetailActivity", "Post ID retrieved: " + postId);
-            fetchPostDetails(postId);
-        } else {
-            Log.e("PostDetailActivity", "Post ID is null!");
+        // Initialize views
+        postTitle = findViewById(R.id.postDetailTitle);
+        postContent = findViewById(R.id.postDetailContent);
+        postCommunity = findViewById(R.id.postCommunity);
+        postAuthor = findViewById(R.id.userDetailName);
+        commentInput = findViewById(R.id.commentInput);
+        submitCommentButton = findViewById(R.id.submitCommentButton);
+        commentRecyclerView = findViewById(R.id.commentRecyclerView);
+
+        commentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Get postId from Intent
+        postId = getIntent().getStringExtra("postId");
+
+        if (postId == null) {
             Toast.makeText(this, "Error: Post not found!", Toast.LENGTH_SHORT).show();
             finish();
+            return;
         }
+
+        // Load post details and comments
+        fetchPostDetails();
+        fetchComments();
+
+        // Set up submit button
+        submitCommentButton.setOnClickListener(v -> {
+            String content = commentInput.getText().toString().trim();
+            if (!content.isEmpty()) {
+                submitComment(content);
+            } else {
+                Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-
-    private void fetchPostDetails(String postId) {
+    private void fetchPostDetails() {
         db.collection("posts").document(postId).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -54,101 +84,81 @@ public class PostDetailActivity extends AppCompatActivity {
                         if (post != null) {
                             populatePostDetails(post);
                         } else {
-                            Log.e("PostDetailActivity", "Post object is null!");
+                            Toast.makeText(this, "Error loading post details.", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Log.e("PostDetailActivity", "No document found for postId: " + postId);
-                        Toast.makeText(this, "Post not found!", Toast.LENGTH_SHORT).show();
-                        finish();
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Log.e("PostDetailActivity", "Error fetching post details", e);
-                    Toast.makeText(this, "Failed to load post details.", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching post details", e));
     }
+
     private void populatePostDetails(Post post) {
-        TextView titleTextView = findViewById(R.id.postDetailTitle);
-        TextView contentTextView = findViewById(R.id.postDetailContent);
-        TextView communityTextView = findViewById(R.id.postCommunity);
-        TextView usernameTextView = findViewById(R.id.userDetailName);
-
-        titleTextView.setText(post.getTitle() != null ? post.getTitle() : "No Title");
-        contentTextView.setText(post.getContent() != null ? post.getContent() : "No Content");
-        communityTextView.setText(post.getCommunity() != null ? post.getCommunity() : "Unknown Community");
+        postTitle.setText(post.getTitle());
+        postContent.setText(post.getContent());
+        postCommunity.setText(post.getCommunity());
+        db.collection("users").document(post.getUserId()).get()
+                .addOnSuccessListener(userSnapshot -> {
+                    String username = userSnapshot.getString("username");
+                    postAuthor.setText(username != null ? username : "Unknown User");
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching username", e));
     }
 
-
-    private void handleVote(boolean isUpvote) {
-        if (isVoting) return; // Prevent spamming
-        isVoting = true;
-
+    private void submitComment(String content) {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
-            isVoting = false;
+            Toast.makeText(this, "Please log in to comment.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        db.collection("votes")
-                .whereEqualTo("postId", postId)
-                .whereEqualTo("userId", currentUserId)
+        Comment newComment = new Comment(content, currentUserId, null, System.currentTimeMillis());
+        db.collection("posts").document(postId).collection("comments")
+                .add(newComment)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Comment submitted successfully!", Toast.LENGTH_SHORT).show();
+                    commentInput.setText("");
+                    fetchComments();
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error submitting comment", e));
+    }
+
+    private void fetchComments() {
+        db.collection("posts").document(postId).collection("comments")
+                .orderBy("timestamp")
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        String existingVoteId = querySnapshot.getDocuments().get(0).getId();
-                        String existingVoteType = querySnapshot.getDocuments().get(0).getString("voteType");
-
-                        if ((isUpvote && "upvote".equals(existingVoteType)) ||
-                                (!isUpvote && "downvote".equals(existingVoteType))) {
-                            // Remove the vote
-                            db.collection("votes").document(existingVoteId).delete().addOnSuccessListener(aVoid -> {
-                                if (isUpvote && upvoteCount > 0) upvoteCount--;
-                                if (!isUpvote && downvoteCount > 0) downvoteCount--;
-                                updateVoteCounts();
-                            }).addOnFailureListener(e -> isVoting = false);
-                        } else {
-                            // Switch vote
-                            db.collection("votes").document(existingVoteId).update("voteType", isUpvote ? "upvote" : "downvote")
-                                    .addOnSuccessListener(aVoid -> {
-                                        if (isUpvote) {
-                                            upvoteCount++;
-                                            if (downvoteCount > 0) downvoteCount--;
-                                        } else {
-                                            downvoteCount++;
-                                            if (upvoteCount > 0) upvoteCount--;
-                                        }
-                                        updateVoteCounts();
-                                    }).addOnFailureListener(e -> isVoting = false);
+                    List<Comment> comments = new ArrayList<>();
+                    for (DocumentSnapshot document : querySnapshot) {
+                        Comment comment = document.toObject(Comment.class);
+                        if (comment != null) {
+                            comments.add(comment);
                         }
-                    } else {
-                        // Add a new vote
-                        Map<String, Object> voteData = new HashMap<>();
-                        voteData.put("postId", postId);
-                        voteData.put("userId", currentUserId);
-                        voteData.put("voteType", isUpvote ? "upvote" : "downvote");
-
-                        db.collection("votes").add(voteData).addOnSuccessListener(aVoid -> {
-                            if (isUpvote) upvoteCount++;
-                            else downvoteCount++;
-                            updateVoteCounts();
-                        }).addOnFailureListener(e -> isVoting = false);
                     }
+                    displayComments(comments);
                 })
-                .addOnFailureListener(e -> isVoting = false);
+                .addOnFailureListener(e -> Log.e(TAG, "Error fetching comments", e));
     }
 
-    private void updateVoteCounts() {
-        db.collection("posts").document(postId)
-                .update("upvoteCount", upvoteCount, "downvoteCount", downvoteCount)
-                .addOnSuccessListener(aVoid -> {
-                    updateVoteUI();
-                    isVoting = false;
-                })
-                .addOnFailureListener(e -> isVoting = false);
+    private void displayComments(List<Comment> comments) {
+        // Build a map of comment threads
+        Map<String, List<Comment>> commentThreads = new HashMap<>();
+        for (Comment comment : comments) {
+            if (comment.getParentId() == null) {
+                // Top-level comments
+                commentThreads.computeIfAbsent("topLevel", k -> new ArrayList<>()).add(comment);
+            } else {
+                // Replies to comments
+                commentThreads.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>()).add(comment);
+            }
+        }
+
+        // Create the adapter using top-level comments and commentThreads
+        List<Comment> topLevelComments = commentThreads.get("topLevel"); // Retrieve top-level comments
+        if (topLevelComments == null) {
+            topLevelComments = new ArrayList<>(); // Ensure no null pointer exceptions
+        }
+
+        CommentAdapter adapter = new CommentAdapter(this, topLevelComments, commentThreads, postId, 0);
+        commentRecyclerView.setAdapter(adapter);
     }
 
-    private void updateVoteUI() {
-        upvoteCountTextView.setText(String.valueOf(upvoteCount));
-        downvoteCountTextView.setText(String.valueOf(downvoteCount));
-    }
 }

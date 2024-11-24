@@ -7,9 +7,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,15 +73,44 @@ public class AddEditPostActivity extends AppCompatActivity {
         String title = postTitleInput.getText().toString().trim();
         String content = postContentInput.getText().toString().trim();
         String community = communitySpinner.getSelectedItem().toString();  // Get selected community
+        String currentUserId = FirebaseAuth.getInstance().getUid();  // Get the current user's UID
 
         if (!title.isEmpty() && !content.isEmpty() && !community.equals("Select Community")) {
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("title", title);
-            resultIntent.putExtra("content", content);
-            resultIntent.putExtra("community", community);  // Pass selected community back
-            resultIntent.putExtra("position", position);
-            setResult(RESULT_OK, resultIntent);
-            finish();
+            if (currentUserId == null) {
+                Toast.makeText(this, "User not logged in. Cannot save post.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Create a Post object
+            Post newPost = new Post(title, content, currentUserId, community);
+
+            // Save post to Firestore
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("posts")
+                    .add(newPost)  // Add the post to Firestore
+                    .addOnSuccessListener(documentReference -> {
+                        // Set the Firestore document ID as the postId
+                        String postId = documentReference.getId();
+                        newPost.setId(postId);  // Update the Post object with the ID
+
+                        // Update the post in Firestore with the postId
+                        db.collection("posts").document(postId)
+                                .update("id", postId)
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
+                                    finish();  // Close the activity
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Error updating post ID: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error saving post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
         }
     }
 }
+
+
