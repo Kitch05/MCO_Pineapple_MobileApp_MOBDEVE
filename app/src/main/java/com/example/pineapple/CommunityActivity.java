@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +31,8 @@ public class CommunityActivity extends BaseActivity {
 
     private static final int ADD_EDIT_COMMUNITY_REQUEST = 1;
 
+    private List<Community> originalCommunityList; // Keep the unfiltered full list
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +45,8 @@ public class CommunityActivity extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         communityList = new ArrayList<>();
+        originalCommunityList = new ArrayList<>(); // Initialize the full list
+
         loadCommunitiesFromFirestore();
 
         communityAdapter = new CommunityAdapter(this, communityList, this::launchCommunityDetail);
@@ -54,14 +60,29 @@ public class CommunityActivity extends BaseActivity {
             startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
         });
 
-        searchBar.setOnEditorActionListener((textView, actionId, event) -> {
-            return false;
+        // Add a listener to the search bar
+        searchBar.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No action needed here
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterCommunities(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                // No action needed here
+            }
         });
     }
 
-    // Load communities from Firestore
+    // Update to load communities and save the original list
     private void loadCommunitiesFromFirestore() {
-        communityList.clear();  // Clear existing list before fetching new data
+        communityList.clear();
+        originalCommunityList.clear(); // Ensure the original list is synced
         db.collection("community")
                 .get()
                 .addOnCompleteListener(task -> {
@@ -83,6 +104,7 @@ public class CommunityActivity extends BaseActivity {
                                                 int postCount = postsTask.getResult().size();
                                                 Community community = new Community(id, name, description, memberCount, postCount);
                                                 communityList.add(community);
+                                                originalCommunityList.add(community); // Add to original list too
                                                 communityAdapter.notifyDataSetChanged();
                                             }
                                         });
@@ -95,6 +117,29 @@ public class CommunityActivity extends BaseActivity {
                     }
                 });
     }
+
+    // Modified filter method
+    private void filterCommunities(String query) {
+        if (query.isEmpty()) {
+            // If the query is empty, reset to the original list
+            communityAdapter.updateList(originalCommunityList);
+        } else {
+            List<Community> filteredList = new ArrayList<>();
+            for (Community community : originalCommunityList) {
+                if (community.getName().toLowerCase().contains(query.toLowerCase())) {
+                    filteredList.add(community);
+                }
+            }
+
+            communityAdapter.updateList(filteredList);
+
+            // Show a Toast for debugging purposes
+            if (filteredList.isEmpty()) {
+                Toast.makeText(this, "No communities found for: " + query, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 
 
     // Launch community detail view

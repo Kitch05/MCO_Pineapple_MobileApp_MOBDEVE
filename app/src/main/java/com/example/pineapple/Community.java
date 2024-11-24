@@ -31,6 +31,9 @@ public class Community {
         this.isJoined = false;
     }
 
+    public Community(String id, String name, String description, int memberCount, int postCount, boolean isJoined) {
+    }
+
     @Exclude
     public String getId() {
         return id;
