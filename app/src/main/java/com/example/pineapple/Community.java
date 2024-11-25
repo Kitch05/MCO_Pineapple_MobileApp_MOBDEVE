@@ -22,16 +22,13 @@ public class Community {
         this.isJoined = false;
     }
 
-    public Community(String id, String name, String description, int memberCount, int postCount) {
+    public Community(String id, String name, String description, int memberCount, int postCount, boolean isJoined) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.memberCount = memberCount;
         this.postCount = postCount;
-        this.isJoined = false;
-    }
-
-    public Community(String id, String name, String description, int memberCount, int postCount, boolean isJoined) {
+        this.isJoined = isJoined;
     }
 
     @Exclude
@@ -96,5 +93,4 @@ public class Community {
             memberCount--;  // Decrease the member count
         }
     }
-
 }
