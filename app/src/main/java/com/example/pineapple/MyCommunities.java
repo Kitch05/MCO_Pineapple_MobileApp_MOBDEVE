@@ -12,14 +12,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class MyCommunities extends BaseActivity {
 
@@ -28,8 +26,9 @@ public class MyCommunities extends BaseActivity {
     private List<Community> myCommunityList;
     private EditText searchBar;
 
-    private FirebaseFirestore db;
     private static final int ADD_EDIT_COMMUNITY_REQUEST = 1;
+
+    private FirebaseFirestore db;
 
     private List<Community> originalCommunityList;
 
@@ -43,7 +42,7 @@ public class MyCommunities extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         myCommunityList = new ArrayList<>();
-        originalCommunityList = new ArrayList<>(); // Holds the unfiltered list
+        originalCommunityList = new ArrayList<>();
         communityAdapter = new CommunityAdapter(this, myCommunityList, this::launchCommunityDetail);
         recyclerView.setAdapter(communityAdapter);
 
@@ -73,6 +72,60 @@ public class MyCommunities extends BaseActivity {
         loadMyCommunities();
     }
 
+    private void loadMyCommunities() {
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            // Fetch the user's joined communities from the users collection
+            db.collection("users").document(userId).get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot userDocument = task.getResult();
+                            if (userDocument != null && userDocument.exists()) {
+                                List<String> joinedCommunities = (List<String>) userDocument.get("joinedCommunities");
+                                if (joinedCommunities != null && !joinedCommunities.isEmpty()) {
+                                    // Query the communities using the document IDs (community IDs) in the joinedCommunities list
+                                    List<Community> communitiesToLoad = new ArrayList<>();
+                                    for (String communityId : joinedCommunities) {
+                                        db.collection("community").document(communityId).get()
+                                                .addOnCompleteListener(communityTask -> {
+                                                    if (communityTask.isSuccessful()) {
+                                                        DocumentSnapshot document = communityTask.getResult();
+                                                        if (document != null && document.exists()) {
+                                                            Community community = document.toObject(Community.class);
+                                                            if (community != null) {
+                                                                community.setId(document.getId());
+                                                                community.setMemberCount(document.getLong("memberCount").intValue());
+                                                                community.setPostCount(document.getLong("postCount").intValue());
+                                                                communitiesToLoad.add(community);
+                                                            }
+                                                        }
+                                                    }
+                                                    // Once all communities are fetched, update the list
+                                                    if (communitiesToLoad.size() == joinedCommunities.size()) {
+                                                        originalCommunityList.clear();
+                                                        originalCommunityList.addAll(communitiesToLoad);
+                                                        myCommunityList.clear();
+                                                        myCommunityList.addAll(communitiesToLoad);
+                                                        communityAdapter.notifyDataSetChanged();
+
+                                                        // Toast to confirm data loading
+                                                        Toast.makeText(MyCommunities.this, "Loaded " + communitiesToLoad.size() + " communities.", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
+                                    }
+                                } else {
+                                    Toast.makeText(MyCommunities.this, "No communities found for the user.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        } else {
+                            Toast.makeText(MyCommunities.this, "Error fetching user data.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+
+
     private void filterCommunities(String query) {
         if (query.isEmpty()) {
             // Reset the main list to the full list
@@ -100,40 +153,6 @@ public class MyCommunities extends BaseActivity {
         communityAdapter.notifyDataSetChanged();
     }
 
-
-    private void loadMyCommunities() {
-        db.collection("communities")
-                .whereArrayContains("members", getCurrentUserId()) // Assuming members is an array of user IDs
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot documents = task.getResult();
-                        if (documents != null) {
-                            for (DocumentSnapshot document : documents) {
-                                Community community = document.toObject(Community.class);
-                                if (community != null) {
-                                    // Add additional data, like member count and post count
-                                    community.setId(document.getId());
-                                    community.setMemberCount(document.getLong("memberCount").intValue());
-                                    community.setPostCount(document.getLong("postCount").intValue());
-                                    originalCommunityList.add(community); // Populate the original list
-                                }
-                            }
-                            myCommunityList.clear();
-                            myCommunityList.addAll(originalCommunityList); // Sync both lists
-                            communityAdapter.notifyDataSetChanged();
-
-                            // Toast to confirm data loading
-                            Toast.makeText(this, "Loaded " + originalCommunityList.size() + " communities.", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(MyCommunities.this, "Error loading communities.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-
-
     private void launchCommunityDetail(int position) {
         Community community = myCommunityList.get(position);
         Intent intent = new Intent(MyCommunities.this, CommunityDetailActivity.class);
@@ -150,9 +169,7 @@ public class MyCommunities extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ADD_EDIT_COMMUNITY_REQUEST && resultCode == RESULT_OK && data != null) {
             String communityId = data.getStringExtra("communityId");
-            int position = IntStream.range(0, myCommunityList.size()).filter(i -> myCommunityList.get(i).getId().equals(communityId)).findFirst().orElse(-1);
-
-            // Find the community by ID
+            int position = findCommunityPositionById(communityId);
 
             if (position != -1) {
                 // Update the community in Firestore
@@ -161,12 +178,21 @@ public class MyCommunities extends BaseActivity {
                 updatedCommunity.setPostCount(data.getIntExtra("postCount", updatedCommunity.getPostCount()));
 
                 // Update Firestore document
-                DocumentReference communityRef = db.collection("communities").document(communityId);
-                communityRef.update("memberCount", updatedCommunity.getMemberCount(), "postCount", updatedCommunity.getPostCount())
+                db.collection("community").document(communityId)
+                        .update("memberCount", updatedCommunity.getMemberCount(), "postCount", updatedCommunity.getPostCount())
                         .addOnSuccessListener(aVoid -> communityAdapter.notifyItemChanged(position))
                         .addOnFailureListener(e -> Toast.makeText(MyCommunities.this, "Error updating community.", Toast.LENGTH_SHORT).show());
             }
         }
+    }
+
+    private int findCommunityPositionById(String communityId) {
+        for (int i = 0; i < myCommunityList.size(); i++) {
+            if (myCommunityList.get(i).getId().equals(communityId)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private String getCurrentUserId() {

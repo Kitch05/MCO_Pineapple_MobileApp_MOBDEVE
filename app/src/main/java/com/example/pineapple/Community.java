@@ -2,6 +2,8 @@ package com.example.pineapple;
 
 import com.google.firebase.firestore.Exclude;
 
+import java.util.List;
+
 public class Community {
     private String id; // Firestore document ID
     private String name;
@@ -9,6 +11,7 @@ public class Community {
     private int memberCount;
     private int postCount;
     private boolean isJoined;
+    private List<String> members;
 
     public Community() {
         // Required for Firestore deserialization
@@ -78,6 +81,14 @@ public class Community {
 
     public void setDescription(String updatedDescription) {
         this.description = updatedDescription;
+    }
+
+    public List<String> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<String> members) {
+        this.members = members;
     }
 
     public void joinCommunity() {
