@@ -137,9 +137,8 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
 
     private void fetchPosts(String communityId) {
-        db.collection("community")
-                .document(communityId)
-                .collection("posts")
+        db.collection("posts")
+                .whereEqualTo("community", communityId) // Filter by the community field
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -147,8 +146,8 @@ public class CommunityDetailActivity extends AppCompatActivity {
                         for (DocumentSnapshot document : task.getResult()) {
                             Post post = document.toObject(Post.class);
                             if (post != null) {
-                                post.setId(document.getId());
-                                postList.add(post);
+                                post.setId(document.getId()); // Set Firestore document ID
+                                postList.add(post); // Add post to the list
                             }
                         }
                         postAdapter.notifyDataSetChanged();
@@ -157,6 +156,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
 
     private void toggleMembership(String communityId) {
@@ -256,4 +256,24 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
             }
         }
+
+    private void savePost(String title, String content, String userId, String communityId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Post post = new Post(title, content, userId, communityId);
+
+        db.collection("posts")
+                .add(post)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(this, "Post added successfully!", Toast.LENGTH_SHORT).show();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("title", title);
+                    resultIntent.putExtra("content", content);
+                    setResult(RESULT_OK, resultIntent);
+                    finish(); // Close the activity
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
+
+}

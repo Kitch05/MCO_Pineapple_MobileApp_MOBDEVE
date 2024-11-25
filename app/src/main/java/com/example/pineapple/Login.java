@@ -7,6 +7,7 @@ import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,11 +21,14 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import android.content.SharedPreferences;
+
 public class Login extends AppCompatActivity {
 
     private boolean isPasswordVisible = false;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +37,7 @@ public class Login extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        sharedPreferences = getSharedPreferences("PineapplePrefs", MODE_PRIVATE);
 
         final EditText usernameEditText = findViewById(R.id.username);
         final EditText passwordEditText = findViewById(R.id.password);
@@ -40,73 +45,71 @@ public class Login extends AppCompatActivity {
         TextView signupLink = findViewById(R.id.signup_link);
         TextView guestLink = findViewById(R.id.guest_link);
         Button loginButton = findViewById(R.id.login_button);
+        CheckBox rememberMeCheckBox = findViewById(R.id.remember_me);
 
-        signupLink.setPaintFlags(signupLink.getPaintFlags() | Paint.UNDERLINE_TEXT_FLAG);
+        // Check if user is already logged in
+        checkRememberMe();
 
-        togglePasswordVisibility.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isPasswordVisible) {
-                    passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                    togglePasswordVisibility.setImageResource(R.drawable.hide_pw);
+        togglePasswordVisibility.setOnClickListener(v -> {
+            if (isPasswordVisible) {
+                passwordEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                togglePasswordVisibility.setImageResource(R.drawable.hide_pw);
+            } else {
+                passwordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                togglePasswordVisibility.setImageResource(R.drawable.show_pw);
+            }
+            isPasswordVisible = !isPasswordVisible;
+            passwordEditText.setSelection(passwordEditText.getText().length());
+        });
+
+        signupLink.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, Registration.class);
+            startActivity(intent);
+        });
+
+        guestLink.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+        loginButton.setOnClickListener(v -> {
+            String input = usernameEditText.getText().toString().trim();
+            String password = passwordEditText.getText().toString().trim();
+
+            if (input.isEmpty() || password.isEmpty()) {
+                Toast.makeText(Login.this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
+            } else {
+                if (isValidEmail(input)) {
+                    loginWithEmail(input, password, rememberMeCheckBox.isChecked());
                 } else {
-                    passwordEditText.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-                    togglePasswordVisibility.setImageResource(R.drawable.show_pw);
-                }
-                isPasswordVisible = !isPasswordVisible;
-                passwordEditText.setSelection(passwordEditText.getText().length());
-            }
-        });
-
-        signupLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Login.this, Registration.class);
-                startActivity(intent);
-            }
-        });
-
-        guestLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Login.this, MainActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String input = usernameEditText.getText().toString().trim();
-                String password = passwordEditText.getText().toString().trim();
-
-                if (input.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(Login.this, "Please enter both username and password", Toast.LENGTH_SHORT).show();
-                } else {
-                    if (isValidEmail(input)) {
-                        // If the input is a valid email, use Firebase Authentication
-                        loginWithEmail(input, password);
-                    } else {
-                        // Otherwise, search Firestore for the username to find the associated email
-                        loginWithUsername(input, password);
-                    }
+                    loginWithUsername(input, password, rememberMeCheckBox.isChecked());
                 }
             }
         });
     }
 
-    // Check if the input is a valid email
+    private void checkRememberMe() {
+        String savedEmail = sharedPreferences.getString("email", null);
+        if (savedEmail != null) {
+            Intent intent = new Intent(Login.this, MainActivity.class);
+            startActivity(intent);
+            finish(); // Skip the login screen
+        }
+    }
+
     private boolean isValidEmail(String input) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches();
     }
 
-    // Login using email
-    private void loginWithEmail(String email, String password) {
+    private void loginWithEmail(String email, String password, boolean rememberMe) {
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(Login.this, task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+                        if (rememberMe) {
+                            saveLoginDetails(email);
+                        }
                         Toast.makeText(Login.this, "Login successful", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(Login.this, MainActivity.class);
                         startActivity(intent);
@@ -117,10 +120,9 @@ public class Login extends AppCompatActivity {
                 });
     }
 
-    // Login using username (search for the email in Firestore)
-    private void loginWithUsername(final String username, final String password) {
+    private void loginWithUsername(final String username, final String password, boolean rememberMe) {
         db.collection("users")
-                .whereEqualTo("username", username) // Query the username
+                .whereEqualTo("username", username)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -128,7 +130,10 @@ public class Login extends AppCompatActivity {
                         if (!documents.isEmpty()) {
                             String email = documents.getDocuments().get(0).getString("email");
                             if (email != null) {
-                                loginWithEmail(email, password);  // Login with the retrieved email
+                                if (rememberMe) {
+                                    saveLoginDetails(email);
+                                }
+                                loginWithEmail(email, password, rememberMe);
                             } else {
                                 Toast.makeText(Login.this, "Username not associated with any email", Toast.LENGTH_SHORT).show();
                             }
@@ -139,5 +144,11 @@ public class Login extends AppCompatActivity {
                         Toast.makeText(Login.this, "Error retrieving username", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void saveLoginDetails(String email) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("email", email);
+        editor.apply(); // Save email in SharedPreferences
     }
 }
