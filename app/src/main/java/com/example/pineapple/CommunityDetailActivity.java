@@ -85,8 +85,10 @@ public class CommunityDetailActivity extends AppCompatActivity {
         // Edit community button logic
         editCommunityButton.setOnClickListener(v -> {
             Intent editCommunityIntent = new Intent(CommunityDetailActivity.this, AddEditCommunityActivity.class);
-            editCommunityIntent.putExtra("communityId", communityId);
-            startActivityForResult(editCommunityIntent, EDIT_COMMUNITY_REQUEST_CODE);
+            editCommunityIntent.putExtra("communityId", communityId); // Pass the community ID
+            editCommunityIntent.putExtra("communityName", community.getName());  // Pass the community name
+            editCommunityIntent.putExtra("communityDescription", community.getDescription());
+            startActivityForResult(editCommunityIntent, EDIT_COMMUNITY_REQUEST_CODE); // Start the activity for result
         });
 
         // Back button logic
