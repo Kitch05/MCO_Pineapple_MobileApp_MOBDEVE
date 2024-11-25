@@ -1,0 +1,9 @@
+<resources>
+    <!-- Add these colors -->
+    <color name="comment_background">#121212</color> <!-- Dark background for comments -->
+    <color name="button_background">#1E88E5</color> <!-- Blue background for buttons -->
+
+    <!-- Existing colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

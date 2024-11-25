@@ -1,11 +1,11 @@
 package com.example.pineapple;
 
 public class Comment {
-    private String id; // Firestore ID
-    private String content;
-    private String userId;
-    private String parentId; // For nested replies
-    private long timestamp;
+    private String id; // Firestore ID for the comment
+    private String content; // The comment content
+    private String userId; // ID of the user who posted the comment
+    private String parentId; // The ID of the parent comment (null for top-level comments)
+    private long timestamp; // Timestamp when the comment was created
 
     // Firestore requires an empty constructor
     public Comment() {}

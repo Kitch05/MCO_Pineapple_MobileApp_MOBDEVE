@@ -2,34 +2,78 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:background="@color/comment_background">
 
-    <!-- Comment Content -->
+    <!-- Comment Section -->
     <TextView
         android:id="@+id/commentContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Comment content"
         android:textSize="14sp"
-        android:textColor="#FFFFFF" />
+        android:textColor="#FFFFFF"
+        android:padding="4dp" />
 
-    <!-- Comment Username -->
-    <TextView
-        android:id="@+id/commentUsername"
-        android:layout_width="wrap_content"
+    <!-- Username and Timestamp -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Username"
-        android:textSize="12sp"
-        android:textColor="#AAAAAA" />
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
 
-    <!-- Comment Timestamp -->
-    <TextView
-        android:id="@+id/commentTimestamp"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/commentUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textSize="12sp"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:id="@+id/commentTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Timestamp"
+            android:textSize="10sp"
+            android:textColor="#808080" />
+    </LinearLayout>
+
+    <!-- Reply Input Section (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/replyContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Timestamp"
-        android:textSize="10sp"
-        android:textColor="#808080" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:visibility="gone"
+        android:layout_marginTop="8dp">
+
+        <!-- Reply Input Field -->
+        <EditText
+            android:id="@+id/replyInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Write a reply..."
+            android:padding="8dp"
+            android:backgroundTint="#FFFFFF"
+            android:inputType="text"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#CCCCCC" />
+
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/submitReplyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/button_background"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <!-- Reply Button -->
     <Button
@@ -38,26 +82,8 @@
         android:layout_height="wrap_content"
         android:text="Reply"
         android:textSize="12sp"
-        android:layout_marginTop="8dp" />
-
-    <!-- Reply Input -->
-    <EditText
-        android:id="@+id/replyInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Write a reply..."
-        android:visibility="gone"
-        android:layout_marginTop="8dp"
-        android:padding="8dp"
-        android:backgroundTint="#FFFFFF" />
-
-    <!-- Submit Reply Button -->
-    <Button
-        android:id="@+id/submitReplyButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Submit"
-        android:visibility="gone"
+        android:backgroundTint="@color/button_background"
+        android:textColor="#FFFFFF"
         android:layout_marginTop="8dp" />
 
     <!-- Replies RecyclerView -->
@@ -65,5 +91,6 @@
         android:id="@+id/repliesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="false" />
+        android:visibility="gone"
+        android:layout_marginTop="8dp" />
 </LinearLayout>

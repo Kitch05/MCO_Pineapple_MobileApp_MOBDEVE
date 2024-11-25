@@ -69,7 +69,7 @@ public class PostDetailActivity extends AppCompatActivity {
         submitCommentButton.setOnClickListener(v -> {
             String content = commentInput.getText().toString().trim();
             if (!content.isEmpty()) {
-                submitComment(content);
+                submitComment(content, null); // Pass null for parentId to indicate a top-level comment
             } else {
                 Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
             }
@@ -103,40 +103,71 @@ public class PostDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching username", e));
     }
 
-    private void submitComment(String content) {
+    private void submitComment(String content, String parentId) {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
             Toast.makeText(this, "Please log in to comment.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Comment newComment = new Comment(content, currentUserId, null, System.currentTimeMillis());
+        // Create a new Comment object
+        Comment newComment = new Comment(content, currentUserId, parentId, System.currentTimeMillis());
+
+        // Add the comment to Firestore
         db.collection("posts").document(postId).collection("comments")
                 .add(newComment)
                 .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(this, "Comment submitted successfully!", Toast.LENGTH_SHORT).show();
-                    commentInput.setText("");
-                    fetchComments();
+                    // Update the Firestore document with its generated ID
+                    String commentId = documentReference.getId();
+                    db.collection("posts").document(postId)
+                            .collection("comments").document(commentId)
+                            .update("id", commentId)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Comment submitted successfully!", Toast.LENGTH_SHORT).show();
+                                commentInput.setText(""); // Clear the input field
+                                fetchComments(); // Refresh comments
+                            })
+                            .addOnFailureListener(e -> Log.e(TAG, "Error updating comment ID", e));
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error submitting comment", e));
     }
 
+
     private void fetchComments() {
         db.collection("posts").document(postId).collection("comments")
-                .orderBy("timestamp")
+                .orderBy("timestamp") // Optional: Sort comments by timestamp
                 .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<Comment> comments = new ArrayList<>();
-                    for (DocumentSnapshot document : querySnapshot) {
-                        Comment comment = document.toObject(Comment.class);
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<Comment> allComments = new ArrayList<>();
+                    Map<String, List<Comment>> threads = new HashMap<>();
+
+                    for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
+                        Comment comment = snapshot.toObject(Comment.class);
                         if (comment != null) {
-                            comments.add(comment);
+                            comment.setId(snapshot.getId()); // Set the Firestore document ID as the comment ID
+                            allComments.add(comment);
+
+                            // Build a map of comment threads
+                            if (comment.getParentId() != null) {
+                                threads.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>()).add(comment);
+                            }
                         }
                     }
-                    displayComments(comments);
+
+                    // Update the adapter with top-level comments and threads
+                    List<Comment> topLevelComments = new ArrayList<>();
+                    for (Comment comment : allComments) {
+                        if (comment.getParentId() == null) {
+                            topLevelComments.add(comment);
+                        }
+                    }
+
+                    CommentAdapter adapter = new CommentAdapter(PostDetailActivity.this, topLevelComments, threads, postId, 0);
+                    commentRecyclerView.setAdapter(adapter);
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching comments", e));
     }
+
 
     private void displayComments(List<Comment> comments) {
         // Build a map of comment threads

@@ -1,11 +1,13 @@
 package com.example.pineapple;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,6 +18,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -76,25 +79,22 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             holder.repliesRecyclerView.setVisibility(View.GONE);
         }
 
-        // Show reply box on button click
+        // Handle reply button
         holder.replyButton.setOnClickListener(v -> {
-            if (holder.replyInput.getVisibility() == View.GONE) {
-                holder.replyInput.setVisibility(View.VISIBLE);
-                holder.submitReplyButton.setVisibility(View.VISIBLE);
+            if (holder.replyContainer.getVisibility() == View.GONE) {
+                holder.replyContainer.setVisibility(View.VISIBLE);
             } else {
-                holder.replyInput.setVisibility(View.GONE);
-                holder.submitReplyButton.setVisibility(View.GONE);
+                holder.replyContainer.setVisibility(View.GONE);
             }
+        });
 
-            holder.submitReplyButton.setOnClickListener(v2 -> {
-                String replyContent = holder.replyInput.getText().toString().trim();
-                if (!replyContent.isEmpty()) {
-                    submitReply(replyContent, comment.getId()); // Pass parent comment ID
-                    holder.replyInput.setText("");
-                    holder.replyInput.setVisibility(View.GONE);
-                    holder.submitReplyButton.setVisibility(View.GONE);
-                }
-            });
+        holder.submitReplyButton.setOnClickListener(v -> {
+            String replyContent = holder.replyInput.getText().toString().trim();
+            if (!replyContent.isEmpty()) {
+                submitReply(replyContent, comment.getId()); // Pass parent comment ID
+                holder.replyInput.setText(""); // Clear input field
+                holder.replyContainer.setVisibility(View.GONE); // Hide input after submitting
+            }
         });
 
     }
@@ -113,36 +113,48 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     // Helper: Submit a reply to Firestore
     private void submitReply(String content, String parentId) {
         String currentUserId = FirebaseAuth.getInstance().getUid();
-        if (currentUserId == null || postId == null) return;
+        if (currentUserId == null || postId == null || parentId == null) return;
 
-        // Create reply with parentId
+        // Create reply with the correct parentId
         Comment reply = new Comment(content, currentUserId, parentId, System.currentTimeMillis());
 
         FirebaseFirestore.getInstance().collection("posts").document(postId)
                 .collection("comments")
-                .add(reply)
+                .add(reply) // Add the reply to Firestore
                 .addOnSuccessListener(documentReference -> {
-                    // Update the Firestore document with its generated ID
+                    // Set the Firestore document ID as the reply ID in Firestore
                     String replyId = documentReference.getId();
                     FirebaseFirestore.getInstance().collection("posts").document(postId)
                             .collection("comments").document(replyId)
-                            .update("id", replyId)
+                            .update("id", replyId) // Update the reply with its generated ID
                             .addOnSuccessListener(aVoid -> {
-                                // Optional: Notify the adapter or reload comments
+                                // Add the reply to the local commentThreads map
+                                if (!commentThreads.containsKey(parentId)) {
+                                    commentThreads.put(parentId, new ArrayList<>());
+                                }
+                                reply.setId(replyId); // Set the reply's ID
+                                commentThreads.get(parentId).add(reply); // Add the reply to its parent's thread
+
+                                // Notify the adapter to refresh the UI
+                                notifyDataSetChanged();
+                            })
+                            .addOnFailureListener(e -> {
+                                // Handle failure to update the document
+                                Log.e("CommentAdapter", "Failed to update reply ID", e);
                             });
                 })
                 .addOnFailureListener(e -> {
-                    // Handle failure
+                    // Handle failure to add the reply
+                    Log.e("CommentAdapter", "Failed to submit reply", e);
                 });
     }
-
-
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
         TextView commentContent, commentUsername, commentTimestamp;
         RecyclerView repliesRecyclerView;
         Button replyButton, submitReplyButton;
         EditText replyInput;
+        LinearLayout replyContainer; // Add replyContainer
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -153,6 +165,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             replyButton = itemView.findViewById(R.id.replyButton);
             submitReplyButton = itemView.findViewById(R.id.submitReplyButton);
             replyInput = itemView.findViewById(R.id.replyInput);
+            replyContainer = itemView.findViewById(R.id.replyContainer); // Initialize replyContainer
         }
     }
 }
