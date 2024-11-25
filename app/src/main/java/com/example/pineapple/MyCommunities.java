@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -25,6 +27,7 @@ public class MyCommunities extends BaseActivity {
     private CommunityAdapter communityAdapter;
     private List<Community> myCommunityList;
     private EditText searchBar;
+    private int currentCommunityPosition = -1;
 
     private static final int ADD_EDIT_COMMUNITY_REQUEST = 1;
 
@@ -154,15 +157,27 @@ public class MyCommunities extends BaseActivity {
     }
 
     private void launchCommunityDetail(int position) {
+        if (position < 0 || position >= myCommunityList.size()) {
+            Toast.makeText(MyCommunities.this, "Invalid community position", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         Community community = myCommunityList.get(position);
+        Toast.makeText(MyCommunities.this, "Opening community: " + community.getName(), Toast.LENGTH_SHORT).show();
+
         Intent intent = new Intent(MyCommunities.this, CommunityDetailActivity.class);
+        intent.putExtra("communityId", community.getId()); // Pass the community ID
         intent.putExtra("communityName", community.getName());
         intent.putExtra("communityDescription", community.getDescription());
         intent.putExtra("memberCount", community.getMemberCount());
         intent.putExtra("postCount", community.getPostCount());
-        intent.putExtra("communityId", community.getId()); // Pass the community ID
+
+        // Log the data being passed to confirm
+        Log.d("MyCommunities", "Intent Data: " + community.getName() + ", ID: " + community.getId());
+
         startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -172,19 +187,44 @@ public class MyCommunities extends BaseActivity {
             int position = findCommunityPositionById(communityId);
 
             if (position != -1) {
-                // Update the community in Firestore
                 Community updatedCommunity = myCommunityList.get(position);
-                updatedCommunity.setMemberCount(data.getIntExtra("memberCount", updatedCommunity.getMemberCount()));
-                updatedCommunity.setPostCount(data.getIntExtra("postCount", updatedCommunity.getPostCount()));
+
+                boolean isJoined = data.getBooleanExtra("isJoined", false); // Assuming you pass this in the intent
+                int updatedMemberCount = updatedCommunity.getMemberCount();
+
+                if (isJoined) {
+                    updatedCommunity.setMemberCount(updatedMemberCount + 1); // Increment member count if joined
+                } else {
+                    updatedCommunity.setMemberCount(updatedMemberCount - 1); // Decrement member count if left
+                }
 
                 // Update Firestore document
                 db.collection("community").document(communityId)
-                        .update("memberCount", updatedCommunity.getMemberCount(), "postCount", updatedCommunity.getPostCount())
-                        .addOnSuccessListener(aVoid -> communityAdapter.notifyItemChanged(position))
+                        .update("memberCount", updatedCommunity.getMemberCount())
+                        .addOnSuccessListener(aVoid -> {
+                            communityAdapter.notifyItemChanged(position);
+
+                            // Update the user's joined communities list
+                            updateUserJoinedCommunities(isJoined, communityId);
+                        })
                         .addOnFailureListener(e -> Toast.makeText(MyCommunities.this, "Error updating community.", Toast.LENGTH_SHORT).show());
             }
         }
     }
+
+    private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            db.collection("users").document(userId)
+                    .update("joinedCommunities", isJoined ? FieldValue.arrayUnion(communityId) : FieldValue.arrayRemove(communityId))
+                    .addOnSuccessListener(aVoid -> {
+                        // Optionally, reload the communities to reflect the updated state
+                        loadMyCommunities();
+                    })
+                    .addOnFailureListener(e -> Toast.makeText(MyCommunities.this, "Error updating user data.", Toast.LENGTH_SHORT).show());
+        }
+    }
+
 
     private int findCommunityPositionById(String communityId) {
         for (int i = 0; i < myCommunityList.size(); i++) {
@@ -203,5 +243,9 @@ public class MyCommunities extends BaseActivity {
         } else {
             return null; // Return null if the user is not logged in
         }
+    }
+
+    public void setCurrentCommunityPosition(int position) {
+        this.currentCommunityPosition = position;
     }
 }

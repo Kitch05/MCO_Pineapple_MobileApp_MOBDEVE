@@ -14,8 +14,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -170,13 +173,34 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
         // Update Firestore: Modify 'joined' instead of 'isJoined'
         DocumentReference communityRef = db.collection("community").document(communityId);
-        communityRef.update("joined", isJoined, "memberCount", memberCount)  // Update 'joined' field in Firestore
+        communityRef.update("joined", isJoined, "memberCount", memberCount)
                 .addOnSuccessListener(aVoid -> {
                     // Update the community list directly
                     fetchCommunityData(communityId);  // Re-fetch community data to reflect the updated state
+
+                    // Update the user's joined communities list
+                    updateUserJoinedCommunities(isJoined, communityId); // Call to update user's document
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to update membership.", Toast.LENGTH_SHORT).show());
     }
+
+    private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
+        String userId = getCurrentUserId();  // Assume you have a method to get the current user's ID
+        if (userId != null) {
+            DocumentReference userRef = db.collection("users").document(userId);
+
+            if (isJoined) {
+                // Add community to joinedCommunities if the user joins
+                userRef.update("joinedCommunities", FieldValue.arrayUnion(communityId))
+                        .addOnSuccessListener(aVoid -> Log.d("CommunityDetailActivity", "Community added to user."));
+            } else {
+                // Remove community from joinedCommunities if the user leaves
+                userRef.update("joinedCommunities", FieldValue.arrayRemove(communityId))
+                        .addOnSuccessListener(aVoid -> Log.d("CommunityDetailActivity", "Community removed from user."));
+            }
+        }
+    }
+
 
 
     private void updateJoinLeaveButtonText() {
@@ -274,6 +298,15 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private String getCurrentUserId() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            return currentUser.getUid();
+        } else {
+            return null;
+        }
     }
 
 }
