@@ -6,17 +6,17 @@
     android:padding="16dp"
     android:background="#111214">
 
+    <!-- Header -->
     <include layout="@layout/header" />
 
     <!-- Back Button -->
     <ImageView
         android:id="@+id/backButton"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/back"
+        android:layout_width="30dp"
+        android:layout_height="42dp"
         android:contentDescription="Back"
-        android:layout_gravity="start"
         android:padding="4dp"
+        android:src="@drawable/back"
         app:tint="#F1F6F9" />
 
     <!-- Community Name Input -->
