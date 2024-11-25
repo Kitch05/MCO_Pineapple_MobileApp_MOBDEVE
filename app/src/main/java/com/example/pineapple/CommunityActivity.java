@@ -13,6 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -181,7 +184,30 @@ public class CommunityActivity extends BaseActivity {
         }
     }
 
+    public void joinCommunity(Community community) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DocumentReference communityRef = db.collection("community").document(community.getId());
 
+        // Add the user to the community's members array
+        communityRef.update("members", FieldValue.arrayUnion(userId))
+                .addOnSuccessListener(aVoid -> {
+                    // Optionally, update the community's member count
+                    communityRef.update("memberCount", FieldValue.increment(1));
+
+                    // Update the user's profile to reflect the joined community
+                    DocumentReference userRef = db.collection("users").document(userId);
+                    userRef.update("joinedCommunities", FieldValue.arrayUnion(community.getId()))
+                            .addOnSuccessListener(aVoid1 -> {
+                                Toast.makeText(CommunityActivity.this, "Joined community!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(CommunityActivity.this, "Error updating profile", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(CommunityActivity.this, "Error joining community", Toast.LENGTH_SHORT).show();
+                });
+    }
 
     private void addCommunityToFirestore(Community community) {
         // Check if the community already exists in Firestore by name or other unique identifier

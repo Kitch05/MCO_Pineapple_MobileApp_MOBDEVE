@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 
 public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.CommunityViewHolder> {
@@ -62,6 +63,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         holder.itemView.setOnClickListener(v -> {
             if (context instanceof CommunityActivity) {
                 ((CommunityActivity) context).setCurrentCommunityPosition(position);
+                ((CommunityActivity) context).joinCommunity(community);
             }
             onCommunityClickListener.onCommunityClick(position);
         });
@@ -111,6 +113,18 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         ).addOnSuccessListener(aVoid -> {
             community.setJoined(isJoined); // Update local state
             community.setMemberCount(community.getMemberCount() + incrementValue); // Update local count
+
+            // If the user is joining, update the user's profile to include the community
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            DocumentReference userRef = db.collection("users").document(userId);
+            if (isJoined) {
+                // Add community to user's joined list
+                userRef.update("joinedCommunities", FieldValue.arrayUnion(community.getId()));
+            } else {
+                // Remove community from user's joined list
+                userRef.update("joinedCommunities", FieldValue.arrayRemove(community.getId()));
+            }
+
             notifyDataSetChanged(); // Refresh the UI
         }).addOnFailureListener(e -> {
             Toast.makeText(context, "Failed to update membership: " + e.getMessage(), Toast.LENGTH_SHORT).show();
