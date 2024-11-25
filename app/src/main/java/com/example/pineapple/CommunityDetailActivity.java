@@ -99,31 +99,35 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private void fetchCommunityData(String communityId) {
         DocumentReference communityRef = db.collection("community").document(communityId);
         communityRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
+            if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
                 DocumentSnapshot document = task.getResult();
-                if (document.exists()) {
-                    // Initialize Community object
-                    community = document.toObject(Community.class);
-                    if (community != null) {
-                        community.setId(communityId);
-                        communityNameTextView.setText(community.getName());
-                        communityDescriptionTextView.setText(community.getDescription());
-                        memberCount = community.getMemberCount();
-                        postCount = community.getPostCount();
+                community = document.toObject(Community.class);
 
-                        memberCountTextView.setText(String.valueOf(memberCount));
-                        postCountTextView.setText(String.valueOf(postCount));
-
-                        updateJoinLeaveButtonText();
-                        fetchPosts(communityId);
-                    }
+                if (community != null) {
+                    community.setId(communityId);
+                    updateUIWithCommunityData();
                 }
             } else {
-                Log.e("CommunityDetailActivity", "Error fetching community data", task.getException());
-                Toast.makeText(this, "Failed to load community details.", Toast.LENGTH_SHORT).show();
+                // Handle the error or no data case
+                Log.e("CommunityDetailActivity", "Community not found or failed to fetch.");
+                Toast.makeText(this, "Community data could not be loaded.", Toast.LENGTH_SHORT).show();
+                finish(); // Close the activity if the data cannot be fetched
             }
         });
     }
+
+    private void updateUIWithCommunityData() {
+        communityNameTextView.setText(community.getName());
+        communityDescriptionTextView.setText(community.getDescription());
+        memberCount = community.getMemberCount();
+        postCount = community.getPostCount();
+
+        memberCountTextView.setText(String.valueOf(memberCount));
+        postCountTextView.setText(String.valueOf(postCount));
+        updateJoinLeaveButtonText();
+        fetchPosts(community.getId());
+    }
+
 
     private void fetchPosts(String communityId) {
         db.collection("community")
@@ -184,11 +188,15 @@ public class CommunityDetailActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent resultIntent = new Intent();
+        resultIntent.putExtra("communityId", community.getId()); // Make sure the community ID is passed back
+        resultIntent.putExtra("communityName", community.getName()); // Pass back the name if modified
+        resultIntent.putExtra("communityDescription", community.getDescription()); // Pass back the description if modified
         resultIntent.putExtra("memberCount", memberCount);
         resultIntent.putExtra("postCount", postCount);
         setResult(RESULT_OK, resultIntent);
         super.onBackPressed();
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -216,14 +224,22 @@ public class CommunityDetailActivity extends AppCompatActivity {
                     postAdapter.notifyItemChanged(position);
                 }
             } else if (requestCode == EDIT_COMMUNITY_REQUEST_CODE) {
-                String updatedName = data.getStringExtra("communityName");
-                String updatedDescription = data.getStringExtra("communityDescription");
-                community.setName(updatedName);
-                community.setDescription(updatedDescription);
+                if (community != null && data != null) {
+                    String updatedName = data.getStringExtra("communityName");
+                    String updatedDescription = data.getStringExtra("communityDescription");
 
-                communityNameTextView.setText(updatedName);
-                communityDescriptionTextView.setText(updatedDescription);
+                    if (updatedName != null && updatedDescription != null) {
+                        community.setName(updatedName);
+                        community.setDescription(updatedDescription);
+
+                        communityNameTextView.setText(updatedName);
+                        communityDescriptionTextView.setText(updatedDescription);
+                    } else {
+                        Log.e("CommunityDetailActivity", "Received invalid data for community update.");
+                    }
+                }
+            }
+
             }
         }
     }
-}

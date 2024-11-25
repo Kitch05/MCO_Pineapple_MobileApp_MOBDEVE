@@ -84,5 +84,4 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         notifyDataSetChanged();
     }
 
-
 }

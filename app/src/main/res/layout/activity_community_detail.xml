@@ -36,7 +36,8 @@
                     android:src="@drawable/back"
                     android:contentDescription="Back"
                     android:layout_marginBottom="8dp"
-                    app:tint="#F1F6F9" />
+                    app:tint="#F1F6F9"
+                    android:onClick="onBackPressed"/>
 
                 <!-- Edit Button -->
                 <ImageView

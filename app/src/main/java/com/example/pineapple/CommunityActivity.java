@@ -79,44 +79,33 @@ public class CommunityActivity extends BaseActivity {
         });
     }
 
-    // Update to load communities and save the original list
     private void loadCommunitiesFromFirestore() {
         communityList.clear();
-        originalCommunityList.clear(); // Ensure the original list is synced
+        originalCommunityList.clear();
         db.collection("community")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        QuerySnapshot snapshot = task.getResult();
-                        if (snapshot != null) {
-                            for (DocumentSnapshot document : snapshot.getDocuments()) {
-                                String id = document.getId();
-                                String name = document.getString("name");
-                                String description = document.getString("description");
-
-                                CollectionReference membersRef = document.getReference().collection("members");
-                                membersRef.get().addOnCompleteListener(membersTask -> {
-                                    if (membersTask.isSuccessful()) {
-                                        int memberCount = membersTask.getResult().size();
-                                        CollectionReference postsRef = document.getReference().collection("posts");
-                                        postsRef.get().addOnCompleteListener(postsTask -> {
-                                            if (postsTask.isSuccessful()) {
-                                                int postCount = postsTask.getResult().size();
-                                                Community community = new Community(id, name, description, memberCount, postCount);
-                                                communityList.add(community);
-                                                originalCommunityList.add(community); // Add to original list too
-                                                communityAdapter.notifyDataSetChanged();
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                    } else {
-                        Log.w("CommunityActivity", "Error getting communities.", task.getException());
+                .addSnapshotListener((snapshot, e) -> {
+                    if (e != null) {
+                        Log.w("CommunityActivity", "Listen failed.", e);
+                        return;
                     }
+                    communityList.clear();
+                    originalCommunityList.clear();
+                    for (DocumentSnapshot document : snapshot.getDocuments()) {
+                        // Same logic as before to add communities to lists
+                        Community community = new Community(
+                                document.getId(),
+                                document.getString("name"),
+                                document.getString("description"),
+                                document.get("memberCount", Integer.class),
+                                document.get("postCount", Integer.class)
+                        );
+                        communityList.add(community);
+                        originalCommunityList.add(community);
+                    }
+                    communityAdapter.notifyDataSetChanged();
                 });
     }
+
 
     // Modified filter method
     private void filterCommunities(String query) {
@@ -142,10 +131,10 @@ public class CommunityActivity extends BaseActivity {
 
 
 
-    // Launch community detail view
     private void launchCommunityDetail(int position) {
         Community community = communityList.get(position);
         Intent intent = new Intent(CommunityActivity.this, CommunityDetailActivity.class);
+        intent.putExtra("communityId", community.getId()); // Pass the ID
         intent.putExtra("communityName", community.getName());
         intent.putExtra("communityDescription", community.getDescription());
         intent.putExtra("memberCount", community.getMemberCount());
@@ -154,29 +143,39 @@ public class CommunityActivity extends BaseActivity {
         startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ADD_EDIT_COMMUNITY_REQUEST && resultCode == RESULT_OK && data != null) {
+            String communityId = data.getStringExtra("communityId");
             String communityName = data.getStringExtra("communityName");
             String communityDescription = data.getStringExtra("communityDescription");
+            int memberCount = data.getIntExtra("memberCount", -1); // Ensure you receive the updated member count
+            int postCount = data.getIntExtra("postCount", -1); // Ensure you receive the updated post count
+            int position = data.getIntExtra("position", -1); // Ensure you receive the position of the community
 
-            // If no position, it's a new community, so add it to the list
-            if (currentCommunityPosition == -1) {
-                Community newCommunity = new Community(communityName, communityDescription);
-                addCommunityToFirestore(newCommunity);  // Add new community and notify adapter
+            if (position >= 0 && position < communityList.size()) {
+                // Update the existing community in the list
+                Community community = communityList.get(position);
+                community.setName(communityName);
+                community.setDescription(communityDescription);
+                community.setMemberCount(memberCount);
+                community.setPostCount(postCount);
+
+                // Update Firestore with the new data
+                updateCommunityInFirestore(community);
+
+                // Notify the adapter that the community has been updated
+                communityAdapter.notifyItemChanged(position);
             } else {
-                // Update existing community
-                Community existingCommunity = communityList.get(currentCommunityPosition);
-                existingCommunity.setName(communityName);
-                existingCommunity.setDescription(communityDescription);
-                updateCommunityInFirestore(existingCommunity);  // Update existing community
+                // If position is -1, this means it's a new community, so add it
+                Community newCommunity = new Community(communityId, communityName, communityDescription, memberCount, postCount);
+                addCommunityToFirestore(newCommunity);
             }
-
-            // Refresh the list from Firestore after adding or editing
-            loadCommunitiesFromFirestore();  // Fetch updated list from Firestore
         }
     }
+
 
 
     private void addCommunityToFirestore(Community community) {
@@ -221,8 +220,8 @@ public class CommunityActivity extends BaseActivity {
                 .document(community.getId())
                 .set(community)  // Use set() to replace the document if it exists
                 .addOnSuccessListener(aVoid -> {
-                    // Notify the adapter that the community has been updated
-                    communityAdapter.notifyItemChanged(currentCommunityPosition);
+                    // You could optionally notify the adapter here, though it's done in onActivityResult already
+                    Log.d("CommunityActivity", "Community updated successfully.");
                 })
                 .addOnFailureListener(e -> {
                     Log.w("CommunityActivity", "Error updating community.", e);
