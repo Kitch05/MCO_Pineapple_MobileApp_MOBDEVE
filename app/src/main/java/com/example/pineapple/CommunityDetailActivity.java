@@ -1,5 +1,6 @@
 package com.example.pineapple;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,11 +38,14 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private RecyclerView postListRecyclerView;
     private ImageView editCommunityButton;
 
+
     private Community community;
     private int memberCount;
     private int postCount;
     private List<Post> postList;
+    private List<Community> communityList;
     private PostAdapter postAdapter;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +102,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
         joinLeaveButton.setOnClickListener(v -> toggleMembership(communityId));
     }
 
+
     private void fetchCommunityData(String communityId) {
         DocumentReference communityRef = db.collection("community").document(communityId);
         communityRef.get().addOnCompleteListener(task -> {
@@ -153,24 +158,31 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 });
     }
 
+
     private void toggleMembership(String communityId) {
-        boolean isJoined = !community.isJoined();
-        community.setJoined(isJoined);
-        memberCount = isJoined ? memberCount + 1 : memberCount - 1;
+        boolean isJoined = !community.isJoined();  // Toggle the joined status
+        community.setJoined(isJoined);  // Update the local model to reflect the new joined status
+        memberCount = isJoined ? memberCount + 1 : memberCount - 1;  // Adjust member count based on the new status
 
-        // Update UI
+        // Update UI with new member count
         memberCountTextView.setText(String.valueOf(memberCount));
-        updateJoinLeaveButtonText();
+        updateJoinLeaveButtonText();  // Update the button text based on membership status
 
-        // Update Firestore
+        // Update Firestore: Modify 'joined' instead of 'isJoined'
         DocumentReference communityRef = db.collection("community").document(communityId);
-        communityRef.update("memberCount", memberCount, "isJoined", isJoined)
+        communityRef.update("joined", isJoined, "memberCount", memberCount)  // Update 'joined' field in Firestore
+                .addOnSuccessListener(aVoid -> {
+                    // Update the community list directly
+                    fetchCommunityData(communityId);  // Re-fetch community data to reflect the updated state
+                })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to update membership.", Toast.LENGTH_SHORT).show());
     }
+
 
     private void updateJoinLeaveButtonText() {
         joinLeaveButton.setText(community.isJoined() ? "Leave" : "Join");
     }
+
 
     private void onPostClick(int position) {
         Post post = postList.get(position);

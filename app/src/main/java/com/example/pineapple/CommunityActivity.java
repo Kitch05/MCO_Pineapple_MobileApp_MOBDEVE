@@ -97,7 +97,8 @@ public class CommunityActivity extends BaseActivity {
                                 document.getString("name"),
                                 document.getString("description"),
                                 document.get("memberCount", Integer.class),
-                                document.get("postCount", Integer.class)
+                                document.get("postCount", Integer.class),
+                                document.getBoolean("joined")
                         );
                         communityList.add(community);
                         originalCommunityList.add(community);
@@ -139,6 +140,7 @@ public class CommunityActivity extends BaseActivity {
         intent.putExtra("communityDescription", community.getDescription());
         intent.putExtra("memberCount", community.getMemberCount());
         intent.putExtra("postCount", community.getPostCount());
+        intent.putExtra("isJoined", community.isJoined());
         intent.putExtra("position", position);
         startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
     }
@@ -153,6 +155,7 @@ public class CommunityActivity extends BaseActivity {
             String communityDescription = data.getStringExtra("communityDescription");
             int memberCount = data.getIntExtra("memberCount", -1); // Ensure you receive the updated member count
             int postCount = data.getIntExtra("postCount", -1); // Ensure you receive the updated post count
+            boolean isJoined = data.getBooleanExtra("isJoined", false);
             int position = data.getIntExtra("position", -1); // Ensure you receive the position of the community
 
             if (position >= 0 && position < communityList.size()) {
@@ -162,6 +165,7 @@ public class CommunityActivity extends BaseActivity {
                 community.setDescription(communityDescription);
                 community.setMemberCount(memberCount);
                 community.setPostCount(postCount);
+                community.setJoined(isJoined);
 
                 // Update Firestore with the new data
                 updateCommunityInFirestore(community);
@@ -170,7 +174,8 @@ public class CommunityActivity extends BaseActivity {
                 communityAdapter.notifyItemChanged(position);
             } else {
                 // If position is -1, this means it's a new community, so add it
-                Community newCommunity = new Community(communityId, communityName, communityDescription, memberCount, postCount);
+                Community newCommunity = new Community(communityId, communityName, communityDescription, memberCount, postCount, isJoined);
+                newCommunity.setJoined(isJoined);
                 addCommunityToFirestore(newCommunity);
             }
         }
