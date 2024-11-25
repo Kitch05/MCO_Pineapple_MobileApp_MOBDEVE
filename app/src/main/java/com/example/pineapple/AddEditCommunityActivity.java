@@ -2,6 +2,7 @@ package com.example.pineapple;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -58,6 +59,7 @@ public class AddEditCommunityActivity extends AppCompatActivity {
             communityNameInput.setText(communityName);
             communityDescriptionInput.setText(communityDescription);
             saveCommunityButton.setText("Update");
+
         } else {
             // Set for new community creation
             saveCommunityButton.setText("Save");
