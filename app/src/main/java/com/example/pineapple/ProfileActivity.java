@@ -23,7 +23,7 @@ import java.util.Map;
 public class ProfileActivity extends BaseActivity {
 
     private TextView username;
-    private ImageView profilePic;
+    private ImageView profilePic, backBtn;
     private TextView description;
     private Button editProfile;
 
@@ -44,6 +44,14 @@ public class ProfileActivity extends BaseActivity {
         profilePic = findViewById(R.id.profilePic);
         description = findViewById(R.id.userDescription);
         editProfile = findViewById(R.id.editProfileButton);
+        backBtn = findViewById(R.id.backButton);
+
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
         editProfileLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
