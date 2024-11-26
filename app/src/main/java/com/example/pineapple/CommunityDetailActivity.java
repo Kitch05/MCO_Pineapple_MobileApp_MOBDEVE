@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -115,6 +116,18 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
                 if (community != null) {
                     community.setId(communityId);
+                    // Fetch the creatorId
+                    String creatorId = document.getString("creatorId");
+
+                    // Check if the current user is the creator
+                    if (creatorId != null && creatorId.equals(getCurrentUserId())) {
+                        // Enable or show the edit button if the user is the creator
+                        editCommunityButton.setVisibility(View.VISIBLE); // Show button if creator
+                    } else {
+                        // Hide or disable the edit button if the user is not the creator
+                        editCommunityButton.setVisibility(View.GONE); // Hide the button if not creator
+                    }
+
                     updateUIWithCommunityData();
                 }
             } else {
@@ -125,6 +138,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void updateUIWithCommunityData() {
         communityNameTextView.setText(community.getName());

@@ -10,6 +10,7 @@ public class Community {
     private String description;
     private int memberCount;
     private int postCount;
+    private String creatorId;
     private boolean isJoined;
     private List<String> members;
 
@@ -22,6 +23,7 @@ public class Community {
         this.description = description;
         this.memberCount = 0;
         this.postCount = 0;
+        this.creatorId = "";
         this.isJoined = false;
     }
 
@@ -89,6 +91,14 @@ public class Community {
 
     public void setMembers(List<String> members) {
         this.members = members;
+    }
+
+    public String getCreatorId() {
+        return creatorId;
+    }
+
+    public void setCreatorId(String creatorId) {
+        this.creatorId = creatorId;
     }
 
     public void joinCommunity() {
