@@ -94,7 +94,29 @@ public class PostDetailActivity extends AppCompatActivity {
     private void populatePostDetails(Post post) {
         postTitle.setText(post.getTitle());
         postContent.setText(post.getContent());
-        postCommunity.setText(post.getCommunity());
+
+        // Fetch the community name using the community ID (post.getCommunity())
+        String communityId = post.getCommunity();
+        db.collection("community").document(communityId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String communityName = documentSnapshot.getString("name");  // Fetch the community name
+                        if (communityName != null) {
+                            postCommunity.setText(communityName);  // Set the community name in the TextView
+                        } else {
+                            postCommunity.setText("Unknown Community");
+                        }
+                    } else {
+                        postCommunity.setText("Community not found");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching community name", e);
+                    postCommunity.setText("Error loading community");
+                });
+
+        // Fetch the author's username
         db.collection("users").document(post.getUserId()).get()
                 .addOnSuccessListener(userSnapshot -> {
                     String username = userSnapshot.getString("username");
@@ -102,6 +124,7 @@ public class PostDetailActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching username", e));
     }
+
 
     private void submitComment(String content, String parentId) {
         String currentUserId = FirebaseAuth.getInstance().getUid();
