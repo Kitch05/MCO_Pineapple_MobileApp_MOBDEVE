@@ -17,48 +17,53 @@
         android:background="#1119">
 
         <!-- Community Information Section -->
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
             android:paddingBottom="4dp">
 
             <!-- Community Icon -->
-
-            <!-- Community Name -->
-
             <ImageView
                 android:id="@+id/communityIcon"
                 android:layout_width="47dp"
                 android:layout_height="54dp"
-                android:layout_alignParentStart="true"
                 android:layout_marginStart="1dp"
                 android:src="@drawable/community"
-                app:tint="#FFFFFF" />
+                app:tint="#FFFFFF"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
+            <!-- Community Name -->
             <TextView
                 android:id="@+id/communityName"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Community Name"
                 android:textSize="18sp"
                 android:textColor="#F1F6F9"
                 android:fontFamily="sans-serif-medium"
-                android:layout_toEndOf="@id/communityIcon"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:layout_marginStart="8dp"
-                android:layout_centerVertical="true" />
+                app:layout_constraintStart_toEndOf="@id/communityIcon"
+                app:layout_constraintEnd_toStartOf="@id/joinCommunityButton"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
             <!-- Join Button Positioned to the Right -->
             <Button
                 android:id="@+id/joinCommunityButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
                 android:background="#1ED760"
                 android:text="Join"
-                android:textColor="#F1F6F9" />
-        </RelativeLayout>
+                android:textColor="#F1F6F9"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- Community Description -->
         <TextView
