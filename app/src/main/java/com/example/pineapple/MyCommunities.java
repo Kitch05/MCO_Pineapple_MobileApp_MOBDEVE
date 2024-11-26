@@ -78,48 +78,47 @@ public class MyCommunities extends BaseActivity {
     private void loadMyCommunities() {
         String userId = getCurrentUserId();
         if (userId != null) {
-            db.collection("users").document(userId).get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot userDocument = task.getResult();
-                            if (userDocument != null && userDocument.exists()) {
-                                List<String> joinedCommunities = (List<String>) userDocument.get("joinedCommunities");
-                                if (joinedCommunities != null && !joinedCommunities.isEmpty()) {
-                                    List<Community> communitiesToLoad = new ArrayList<>();
-                                    for (String communityId : joinedCommunities) {
-                                        db.collection("community").document(communityId).get()
-                                                .addOnCompleteListener(communityTask -> {
-                                                    if (communityTask.isSuccessful()) {
-                                                        DocumentSnapshot document = communityTask.getResult();
-                                                        if (document != null && document.exists()) {
-                                                            Community community = document.toObject(Community.class);
-                                                            if (community != null) {
-                                                                community.setId(document.getId());
-                                                                community.setMemberCount(document.getLong("memberCount").intValue());
-                                                                community.setPostCount(document.getLong("postCount").intValue());
-                                                                community.setJoined(true); // Mark as joined
-                                                                communitiesToLoad.add(community);
-                                                            }
-                                                        }
-                                                    }
-                                                    if (communitiesToLoad.size() == joinedCommunities.size()) {
-                                                        originalCommunityList.clear();
-                                                        originalCommunityList.addAll(communitiesToLoad);
-                                                        myCommunityList.clear();
-                                                        myCommunityList.addAll(communitiesToLoad);
-                                                        communityAdapter.notifyDataSetChanged();
-                                                        Toast.makeText(MyCommunities.this, "Loaded " + communitiesToLoad.size() + " communities.", Toast.LENGTH_SHORT).show();
-                                                    }
-                                                });
-                                    }
-                                } else {
-                                    Toast.makeText(MyCommunities.this, "No communities found for the user.", Toast.LENGTH_SHORT).show();
+            db.collection("users").document(userId).addSnapshotListener((userDocument, e) -> {
+                if (e != null) {
+                    Log.w("MyCommunities", "Listen failed.", e);
+                    return;
+                }
+                if (userDocument != null && userDocument.exists()) {
+                    List<String> joinedCommunities = (List<String>) userDocument.get("joinedCommunities");
+                    if (joinedCommunities != null && !joinedCommunities.isEmpty()) {
+                        List<Community> communitiesToLoad = new ArrayList<>();
+                        for (String communityId : joinedCommunities) {
+                            db.collection("community").document(communityId).addSnapshotListener((document, communityError) -> {
+                                if (communityError != null) {
+                                    Log.w("MyCommunities", "Listen failed.", communityError);
+                                    return;
                                 }
-                            }
-                        } else {
-                            Toast.makeText(MyCommunities.this, "Error fetching user data.", Toast.LENGTH_SHORT).show();
+                                if (document != null && document.exists()) {
+                                    Community community = document.toObject(Community.class);
+                                    if (community != null) {
+                                        community.setId(document.getId());
+                                        community.setMemberCount(document.getLong("memberCount").intValue());
+                                        community.setPostCount(document.getLong("postCount").intValue());
+                                        community.setJoined(true);
+                                        communitiesToLoad.add(community);
+                                    }
+                                }
+                                if (communitiesToLoad.size() == joinedCommunities.size()) {
+                                    originalCommunityList.clear();
+                                    originalCommunityList.addAll(communitiesToLoad);
+                                    myCommunityList.clear();
+                                    myCommunityList.addAll(communitiesToLoad);
+                                    communityAdapter.notifyDataSetChanged();
+                                }
+                            });
                         }
-                    });
+                    } else {
+                        myCommunityList.clear();
+                        communityAdapter.notifyDataSetChanged();
+                        Toast.makeText(MyCommunities.this, "No communities found for the user.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
     }
 
@@ -177,49 +176,46 @@ public class MyCommunities extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (resultCode == RESULT_OK && data != null) {
             String communityId = data.getStringExtra("communityId");
             boolean isJoined = data.getBooleanExtra("isJoined", false);
             int updatedMemberCount = data.getIntExtra("memberCount", -1);
 
-            // Update community data
-            for (Community community : myCommunityList) {
+            // Find and update the community in the list
+            for (int i = 0; i < myCommunityList.size(); i++) {
+                Community community = myCommunityList.get(i);
                 if (community.getId().equals(communityId)) {
-                    community.setJoined(isJoined);
-                    community.setMemberCount(updatedMemberCount);
+                    if (!isJoined) {
+                        // Remove the community if the user has left it
+                        myCommunityList.remove(i);
+                        communityAdapter.notifyItemRemoved(i);
+                    } else {
+                        // Update the community details if still joined
+                        community.setJoined(isJoined);
+                        community.setMemberCount(updatedMemberCount);
+                        communityAdapter.notifyItemChanged(i);
+                    }
                     break;
                 }
             }
-
-            // Notify adapter to refresh the UI
-            communityAdapter.notifyDataSetChanged();
         }
     }
 
-
-    private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
-        String userId = getCurrentUserId();
-        if (userId != null) {
-            db.collection("users").document(userId)
-                    .update("joinedCommunities", isJoined ? FieldValue.arrayUnion(communityId) : FieldValue.arrayRemove(communityId))
-                    .addOnSuccessListener(aVoid -> {
-                        // Do not reload all communities here; rely on the local update instead
-                        Toast.makeText(MyCommunities.this, "User data updated.", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(MyCommunities.this, "Error updating user data.", Toast.LENGTH_SHORT).show());
-        }
+    private void updateCommunityInFirestore(Community community) {
+        db.collection("community")
+                .document(community.getId())
+                .set(community)  // Use set() to replace the document with the updated community data
+                .addOnSuccessListener(aVoid -> {
+                    // Show a toast when Firestore update is successful
+                    Toast.makeText(this, "Community updated in Firestore.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    // Show a toast when there's an error updating Firestore
+                    Toast.makeText(this, "Error updating community in Firestore.", Toast.LENGTH_SHORT).show();
+                });
     }
 
-
-
-    private int findCommunityPositionById(String communityId) {
-        for (int i = 0; i < myCommunityList.size(); i++) {
-            if (myCommunityList.get(i).getId().equals(communityId)) {
-                return i;
-            }
-        }
-        return -1;
-    }
 
     private String getCurrentUserId() {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
