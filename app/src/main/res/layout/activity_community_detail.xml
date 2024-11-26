@@ -6,8 +6,6 @@
     android:padding="20dp"
     android:background="#111214">
 
-    <include layout="@layout/header" />
-
     <!-- CardView for Community Content -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -37,9 +35,9 @@
                     android:contentDescription="Back"
                     android:layout_marginBottom="8dp"
                     app:tint="#F1F6F9"
-                    android:onClick="onBackPressed"/>
+                    android:clickable="true"
+                    android:focusable="true" />
 
-                <!-- Edit Button -->
                 <ImageView
                     android:id="@+id/editCommunityButton"
                     android:layout_width="24dp"
@@ -52,7 +50,9 @@
                     android:layout_marginRight="16dp"
                     android:layout_marginBottom="16dp"
                     android:contentDescription="Edit Community"
-                    android:src="@drawable/edit2" />
+                    android:src="@drawable/edit2"
+                    android:clickable="true"
+                    android:focusable="true" />
             </RelativeLayout>
 
             <!-- Community Header Section -->

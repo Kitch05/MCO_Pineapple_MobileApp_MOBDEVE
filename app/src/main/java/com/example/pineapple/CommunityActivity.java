@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -78,42 +79,40 @@ public class CommunityActivity extends BaseActivity {
     }
 
     private void loadCommunitiesFromFirestore() {
-        communityList.clear();
-        originalCommunityList.clear();
         db.collection("community")
-                .addSnapshotListener((snapshot, e) -> {
-                    if (e != null) {
-                        Log.w("CommunityActivity", "Listen failed.", e);
-                        return;
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        communityList.clear();
+                        originalCommunityList.clear(); // Clear and repopulate the original list
+
+                        for (DocumentSnapshot document : task.getResult()) {
+                            Community community = document.toObject(Community.class);
+                            community.setId(document.getId());
+                            communityList.add(community);
+                            originalCommunityList.add(community); // Add to the original list
+                        }
+
+                        communityAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.w("CommunityActivity", "Error getting communities.", task.getException());
                     }
-                    communityList.clear();
-                    originalCommunityList.clear();
-                    for (DocumentSnapshot document : snapshot.getDocuments()) {
-                        Community community = new Community(
-                                document.getId(),
-                                document.getString("name"),
-                                document.getString("description"),
-                                document.get("memberCount", Integer.class),
-                                document.get("postCount", Integer.class),
-                                document.getBoolean("joined")
-                        );
-                        // Log to verify postCount
-                        Log.d("CommunityActivity",  " Post Count: " + community.getPostCount());
-                        communityList.add(community);
-                        originalCommunityList.add(community);
-                    }
-                    communityAdapter.notifyDataSetChanged();
-                    Toast.makeText(this, "Communities loaded from Firestore", Toast.LENGTH_SHORT).show();
                 });
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadCommunitiesFromFirestore(); // Reload community data
+    }
 
     // Modified filter method
     private void filterCommunities(String query) {
         if (query.isEmpty()) {
-            // If the query is empty, reset to the original list
-            communityAdapter.updateList(originalCommunityList);
+            // Reset to the original list
+            communityList.clear();
+            communityList.addAll(originalCommunityList);
         } else {
             List<Community> filteredList = new ArrayList<>();
             for (Community community : originalCommunityList) {
@@ -122,14 +121,17 @@ public class CommunityActivity extends BaseActivity {
                 }
             }
 
-            communityAdapter.updateList(filteredList);
+            communityList.clear();
+            communityList.addAll(filteredList);
+        }
+        communityAdapter.notifyDataSetChanged();
 
-            // Show a Toast for debugging purposes
-            if (filteredList.isEmpty()) {
-                Toast.makeText(this, "No communities found for: " + query, Toast.LENGTH_SHORT).show();
-            }
+        // Show a Toast for debugging purposes
+        if (communityList.isEmpty()) {
+            Toast.makeText(this, "No communities found for: " + query, Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void launchCommunityDetail(int position) {
         Community community = communityList.get(position);
@@ -139,53 +141,37 @@ public class CommunityActivity extends BaseActivity {
         intent.putExtra("communityDescription", community.getDescription());
         intent.putExtra("memberCount", community.getMemberCount());
         intent.putExtra("postCount", community.getPostCount());
-        intent.putExtra("isJoined", community.isJoined());
         intent.putExtra("position", position);
         startActivityForResult(intent, ADD_EDIT_COMMUNITY_REQUEST);
     }
 
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_EDIT_COMMUNITY_REQUEST && resultCode == RESULT_OK && data != null) {
+
+        if (resultCode == RESULT_OK && data != null) {
             String communityId = data.getStringExtra("communityId");
-            String communityName = data.getStringExtra("communityName");
-            String communityDescription = data.getStringExtra("communityDescription");
-            int memberCount = data.getIntExtra("memberCount", -1); // Ensure you receive the updated member count
-            int postCount = data.getIntExtra("postCount", -1); // Ensure you receive the updated post count
-            boolean isJoined = data.getBooleanExtra("isJoined", false);
-            int position = data.getIntExtra("position", -1); // Ensure you receive the position of the community
+            int updatedMemberCount = data.getIntExtra("memberCount", -1);
 
-            Toast.makeText(this, ", Post Count: " + postCount, Toast.LENGTH_SHORT).show();
-
-            if (position >= 0 && position < communityList.size()) {
-                // Update the existing community in the list
-                Community community = communityList.get(position);
-                community.setName(communityName);
-                community.setDescription(communityDescription);
-                community.setMemberCount(memberCount);
-                community.setPostCount(postCount);
-                community.setJoined(isJoined);
-
-                // Update Firestore with the new data
-                updateCommunityInFirestore(community);
-
-                communityList.set(position, community);
-
-                // Notify the adapter that the community has been updated
-                communityAdapter.notifyItemChanged(position);
-
-                Toast.makeText(this, ", Post Count: " + postCount, Toast.LENGTH_SHORT).show();
-            } else {
-                // If position is -1, this means it's a new community, so add it
-                Community newCommunity = new Community(communityId, communityName, communityDescription, memberCount, postCount, isJoined);
-                newCommunity.setJoined(isJoined);
-                addCommunityToFirestore(newCommunity);
+            // Find and update the community in the list
+            for (int i = 0; i < communityList.size(); i++) {
+                Community community = communityList.get(i);
+                if (community.getId().equals(communityId)) {
+                    if (updatedMemberCount == 0) {
+                        // Remove the community if the user has left it
+                        communityList.remove(i);
+                        communityAdapter.notifyItemRemoved(i);
+                        Toast.makeText(this, "Community removed from list.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Update the community details if still joined
+                        community.setMemberCount(updatedMemberCount);
+                        communityAdapter.notifyItemChanged(i);
+                        Toast.makeText(this, "Community updated in list.", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                }
             }
-
-            // Refresh the community list to ensure the post count is updated
-            loadCommunitiesFromFirestore();
         }
     }
 

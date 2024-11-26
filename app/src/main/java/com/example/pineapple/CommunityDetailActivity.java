@@ -22,11 +22,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommunityDetailActivity extends AppCompatActivity {
+public class CommunityDetailActivity extends BaseActivity {
 
     private static final int ADD_POST_REQUEST_CODE = 1;
     private static final int EDIT_POST_REQUEST_CODE = 2;
@@ -51,7 +52,9 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private List<Post> postList;
     private List<Community> communityList;
     private PostAdapter postAdapter;
+    private CommunityAdapter communityAdapter;
     private Context context;
+    private ListenerRegistration postsListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +90,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
         // Add post button logic
         addPostButton.setOnClickListener(v -> {
+            Toast.makeText(this, "Add Post Button Clicked", Toast.LENGTH_SHORT).show(); // Debugging Toast
             Intent addPostIntent = new Intent(CommunityDetailActivity.this, AddEditPostActivity.class);
             addPostIntent.putExtra("communityId", communityId);
             startActivityForResult(addPostIntent, ADD_POST_REQUEST_CODE);
@@ -108,6 +112,25 @@ public class CommunityDetailActivity extends AppCompatActivity {
         joinLeaveButton.setOnClickListener(v -> toggleMembership(communityId));
 
         listenForPostCountUpdates(communityId);
+
+        // Set up Firestore listener for posts
+        postsListener = db.collection("posts")
+                .whereEqualTo("community", communityId)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Toast.makeText(this, "Error listening for posts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (queryDocumentSnapshots != null) {
+                        postList.clear();
+                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                            Post post = document.toObject(Post.class);
+                            post.setId(document.getId());
+                            postList.add(post);
+                        }
+                        postAdapter.notifyDataSetChanged();
+                    }
+                });
     }
 
     private void listenForPostCountUpdates(String communityId) {
@@ -132,6 +155,9 @@ public class CommunityDetailActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (postsListener != null) {
+            postsListener.remove(); // Stop listening to Firestore updates when activity is destroyed
+        }
         if (postCountListener != null) {
             postCountListener.remove(); // Stop listening to Firestore updates when activity is destroyed
         }
@@ -140,35 +166,31 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
     private void fetchCommunityData(String communityId) {
         DocumentReference communityRef = db.collection("community").document(communityId);
-        communityRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
-                DocumentSnapshot document = task.getResult();
-                community = document.toObject(Community.class);
-
+        communityRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                community = documentSnapshot.toObject(Community.class);
                 if (community != null) {
-                    community.setId(communityId);
-                    // Fetch the creatorId
-                    String creatorId = document.getString("creatorId");
+                    community.setId(documentSnapshot.getId());
+
+                    // Update UI with community data
+                    updateUIWithCommunityData();
 
                     // Check if the current user is the creator
-                    if (creatorId != null && creatorId.equals(getCurrentUserId())) {
-                        // Enable or show the edit button if the user is the creator
-                        editCommunityButton.setVisibility(View.VISIBLE); // Show button if creator
-                    } else {
-                        // Hide or disable the edit button if the user is not the creator
-                        editCommunityButton.setVisibility(View.GONE); // Hide the button if not creator
+                    String creatorId = documentSnapshot.getString("creatorId");
+                    String currentUserId = getCurrentUserId();
+                    if (creatorId != null && currentUserId != null && !creatorId.equals(currentUserId)) {
+                        // Hide the edit button if the user is not the creator
+                        editCommunityButton.setVisibility(View.GONE);
                     }
 
-                    updateUIWithCommunityData();
+                    checkJoinStatus(communityId);
                 }
-            } else {
-                // Handle the error or no data case
-                Log.e("CommunityDetailActivity", "Community not found or failed to fetch.");
-                Toast.makeText(this, "Community data could not be loaded.", Toast.LENGTH_SHORT).show();
-                finish(); // Close the activity if the data cannot be fetched
             }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Error fetching community data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         });
     }
+
 
 
     private void updateUIWithCommunityData() {
@@ -179,45 +201,25 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
         memberCountTextView.setText(String.valueOf(memberCount));
         postCountTextView.setText(String.valueOf(postCount));
-        updateJoinLeaveButtonText();
         fetchPosts(community.getId());
     }
 
 
     private void fetchPosts(String communityId) {
         db.collection("posts")
-                .whereEqualTo("community", communityId) // Filter by the community field
-                .addSnapshotListener((querySnapshot, e) -> {
-                    if (e != null) {
-                        Log.e("CommunityDetailActivity", "Error fetching posts", e);
-                        return;
-                    }
-
-                    if (querySnapshot != null) {
-                        postList.clear();  // Clear the current list before adding new posts
-                        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                .whereEqualTo("community", communityId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        postList.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
                             Post post = document.toObject(Post.class);
-                            if (post != null) {
-                                post.setId(document.getId());  // Set Firestore document ID
-
-                                // Fetch the community name using the community ID
-                                db.collection("community").document(communityId)
-                                        .get()
-                                        .addOnSuccessListener(documentSnapshot -> {
-                                            if (documentSnapshot.exists()) {
-                                                String communityName = documentSnapshot.getString("name");
-                                                if (communityName != null) {
-                                                    post.setCommunity(communityName);  // Set the community name in the post
-                                                    postList.add(post);  // Add post to the list
-                                                    postAdapter.notifyDataSetChanged(); // Notify the adapter to update the UI
-                                                }
-                                            }
-                                        })
-                                        .addOnFailureListener(ex -> {
-                                            Log.e("CommunityDetailActivity", "Error fetching community name", ex);
-                                        });
-                            }
+                            post.setId(document.getId());
+                            postList.add(post);
                         }
+                        postAdapter.notifyDataSetChanged();
+                    } else {
+                        Toast.makeText(this, "Error getting posts: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -244,31 +246,81 @@ public class CommunityDetailActivity extends AppCompatActivity {
     }
 
 
-
     private void toggleMembership(String communityId) {
-        boolean isJoined = !community.isJoined();  // Toggle the joined status
-        community.setJoined(isJoined);  // Update the local model to reflect the new joined status
-        memberCount = isJoined ? memberCount + 1 : memberCount - 1;  // Adjust member count based on the new status
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            DocumentReference communityRef = db.collection("community").document(communityId);
+            communityRef.get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> members = (List<String>) documentSnapshot.get("members");
+                    if (members == null) {
+                        members = new ArrayList<>(); // Initialize members list if it's null
+                    }
+                    if (members.contains(userId)) {
+                        // User is leaving the community
+                        Toast.makeText(this, "Leaving community...", Toast.LENGTH_SHORT).show();
+                        members.remove(userId);
+                        communityRef.update("members", members, "memberCount", FieldValue.increment(-1))
+                                .addOnSuccessListener(aVoid -> {
+                                    joinLeaveButton.setText("Join");
+                                    memberCount--;
+                                    memberCountTextView.setText(String.valueOf(memberCount));
+                                    Toast.makeText(this, "You have left the community.", Toast.LENGTH_SHORT).show();
+                                    updateUserJoinedCommunities(false, communityId);
+                                    updateUserJoinedCommunities(false, communityId);
+                                    // Notify the adapter of changes
+                                    Intent resultIntent = new Intent();
+                                    resultIntent.putExtra("communityId", communityId);
+                                    resultIntent.putExtra("memberCount", memberCount);
+                                    setResult(RESULT_OK, resultIntent);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Error updating membership: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    } else {
+                        // User is joining the community
+                        Toast.makeText(this, "Joining community...", Toast.LENGTH_SHORT).show();
+                        members.add(userId);
+                        communityRef.update("members", members, "memberCount", FieldValue.increment(1))
+                                .addOnSuccessListener(aVoid -> {
+                                    joinLeaveButton.setText("Leave");
+                                    memberCount++;
+                                    memberCountTextView.setText(String.valueOf(memberCount));
+                                    Toast.makeText(this, "You have joined the community.", Toast.LENGTH_SHORT).show();
+                                    updateUserJoinedCommunities(true, communityId);
+                                    // Notify the adapter of changes
+                                    Intent resultIntent = new Intent();
+                                    resultIntent.putExtra("communityId", communityId);
+                                    resultIntent.putExtra("memberCount", memberCount);
+                                    setResult(RESULT_OK, resultIntent);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(this, "Error updating membership: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                } else {
+                    Toast.makeText(this, "Community document does not exist", Toast.LENGTH_SHORT).show();
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(this, "Error fetching community document: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            Toast.makeText(this, "User ID is null", Toast.LENGTH_SHORT).show();
+        }
+    }
 
-        // Update UI with new member count
-        memberCountTextView.setText(String.valueOf(memberCount));
-        updateJoinLeaveButtonText();  // Update the button text based on membership status
-
-        // Update Firestore: Modify 'joined' instead of 'isJoined'
-        DocumentReference communityRef = db.collection("community").document(communityId);
-        communityRef.update("joined", isJoined, "memberCount", memberCount)
-                .addOnSuccessListener(aVoid -> {
-                    // Update the community list directly
-                    fetchCommunityData(communityId);  // Re-fetch community data to reflect the updated state
-
-                    // Update the user's joined communities list
-                    updateUserJoinedCommunities(isJoined, communityId); // Call to update user's document
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update membership.", Toast.LENGTH_SHORT).show());
+    private void notifyAdapterOfChanges(String communityId) {
+        // Notify the adapter of changes to the community data
+        for (int i = 0; i < communityList.size(); i++) {
+            if (communityList.get(i).getId().equals(communityId)) {
+                communityAdapter.notifyItemChanged(i); // Use the instance of your adapter
+                break;
+            }
+        }
     }
 
     private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
-        String userId = getCurrentUserId();  // Assume you have a method to get the current user's ID
+        String userId = getCurrentUserId();
         if (userId != null) {
             DocumentReference userRef = db.collection("users").document(userId);
 
@@ -284,10 +336,23 @@ public class CommunityDetailActivity extends AppCompatActivity {
         }
     }
 
-
-
-    private void updateJoinLeaveButtonText() {
-        joinLeaveButton.setText(community.isJoined() ? "Leave" : "Join");
+    private void checkJoinStatus(String communityId) {
+        String userId = getCurrentUserId();
+        if (userId != null) {
+            DocumentReference communityRef = db.collection("community").document(communityId);
+            communityRef.get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> members = (List<String>) documentSnapshot.get("members");
+                    if (members != null && members.contains(userId)) {
+                        joinLeaveButton.setText("Leave");
+                    } else {
+                        joinLeaveButton.setText("Join");
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(this, "Error checking join status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 
 
@@ -323,6 +388,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
             if (requestCode == ADD_POST_REQUEST_CODE) {
+                Toast.makeText(this, "Post Button passed", Toast.LENGTH_SHORT).show();
                 String postTitle = data.getStringExtra("title");
                 String postContent = data.getStringExtra("content");
                 String userId = data.getStringExtra("userId"); // Assuming userId is passed
@@ -352,13 +418,12 @@ public class CommunityDetailActivity extends AppCompatActivity {
                         communityNameTextView.setText(updatedName);
                         communityDescriptionTextView.setText(updatedDescription);
                     } else {
-                        Log.e("CommunityDetailActivity", "Received invalid data for community update.");
+                        Toast.makeText(this, "Failed to pass", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         }
     }
-
 
     private void savePost(String title, String content, String userId, String communityId) {
         Post post = new Post(title, content, userId, communityId);
@@ -367,13 +432,13 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 .add(post)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(this, "Post added successfully!", Toast.LENGTH_SHORT).show();
-                    fetchPosts(communityId); // Re-fetch posts for the UI
-                    fetchPostCount(communityId); // Re-fetch post count
+                    // The real-time listener will update the UI, no need to call fetchPosts()
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 
 
     private void updateCommunityPostCount(String communityId, int newPostCount) {
@@ -394,9 +459,6 @@ public class CommunityDetailActivity extends AppCompatActivity {
             }
         }).addOnFailureListener(e -> Log.e("CommunityDetailActivity", "Failed to fetch updated post count", e));
     }
-
-
-
 
     private String getCurrentUserId() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.CollectionReference;
@@ -112,7 +113,6 @@ public class AddEditCommunityActivity extends AppCompatActivity {
                 Community newCommunity = new Community(name, description);
                 String userId = getCurrentUserId();
                 if (userId != null) {
-                    // Set the creatorId as the current user's ID when creating a new community
                     newCommunity.setCreatorId(userId);
                     communitiesRef.add(newCommunity)
                             .addOnSuccessListener(documentReference -> {

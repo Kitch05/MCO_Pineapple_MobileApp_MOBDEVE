@@ -40,6 +40,10 @@ public class AddEditPostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_post);
 
+
+        Toast.makeText(this, "AddEditPostActivity opened", Toast.LENGTH_SHORT).show();
+
+        // Initialize UI components
         postTitleInput = findViewById(R.id.postTitleInput);
         postContentInput = findViewById(R.id.postContentInput);
         savePostButton = findViewById(R.id.savePostButton);
@@ -91,8 +95,13 @@ public class AddEditPostActivity extends AppCompatActivity {
                         String communityName = documentSnapshot.getString("name");
                         if (communityName != null) {
                             ArrayAdapter<String> adapter = (ArrayAdapter<String>) communitySpinner.getAdapter();
-                            int spinnerPosition = adapter.getPosition(communityName);
-                            communitySpinner.setSelection(spinnerPosition);
+                            if (adapter != null) {
+                                int spinnerPosition = adapter.getPosition(communityName);
+                                communitySpinner.setSelection(spinnerPosition);
+                                Toast.makeText(this, "Default community set: " + communityName, Toast.LENGTH_SHORT).show(); // Debugging Toast
+                            } else {
+                                Toast.makeText(this, "Spinner adapter is null", Toast.LENGTH_SHORT).show(); // Debugging Toast
+                            }
                         }
                     }
                 })
@@ -125,6 +134,13 @@ public class AddEditPostActivity extends AppCompatActivity {
                         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, communityList);
                         adapter.setDropDownViewResource(R.layout.spinner_item);
                         communitySpinner.setAdapter(adapter);
+
+                        // Set the default community if available
+                        Intent intent = getIntent();
+                        String defaultCommunityId = intent.getStringExtra("communityId");
+                        if (defaultCommunityId != null) {
+                            setDefaultCommunity(defaultCommunityId);
+                        }
                     } else {
                         Toast.makeText(this, "Error fetching communities: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }

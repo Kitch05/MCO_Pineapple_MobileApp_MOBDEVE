@@ -17,6 +17,8 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.CommunityViewHolder> {
@@ -49,19 +51,60 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         holder.membersCountTextView.setText(community.getMemberCount() + " Members");
         holder.postCountTextView.setText(community.getPostCount() + " Posts");
 
-        // Update the Join button text based on whether the user has joined
-        holder.joinButton.setText(community.isJoined() ? "Joined" : "Join");
+        // Check if the user has joined the community
+        checkJoinStatus(holder, community);
 
         // Set onClickListener for the Join button to join/leave the community
         holder.joinButton.setOnClickListener(v -> {
-            if (community.isJoined()) {
-                community.leaveCommunity();
-                updateCommunityStatusInFirestore(community, false);
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            if (userId != null) {
+                DocumentReference communityRef = db.collection("community").document(community.getId());
+                communityRef.get().addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<String> members = (List<String>) documentSnapshot.get("members");
+                        if (members == null) {
+                            members = new ArrayList<>(); // Initialize members list if it's null
+                        }
+                        if (members.contains(userId)) {
+                            // User is leaving the community
+                            Toast.makeText(context, "Leaving community...", Toast.LENGTH_SHORT).show();
+                            members.remove(userId);
+                            communityRef.update("members", members, "memberCount", FieldValue.increment(-1))
+                                    .addOnSuccessListener(aVoid -> {
+                                        holder.joinButton.setText("Join");
+                                        community.setMemberCount(community.getMemberCount() - 1);
+                                        Toast.makeText(context, "You have left the community.", Toast.LENGTH_SHORT).show();
+                                        updateUserJoinedCommunities(false, community.getId());
+                                        notifyItemChanged(position); // Notify adapter of changes
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(context, "Error updating membership: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        } else {
+                            // User is joining the community
+                            Toast.makeText(context, "Joining community...", Toast.LENGTH_SHORT).show();
+                            members.add(userId);
+                            communityRef.update("members", members, "memberCount", FieldValue.increment(1))
+                                    .addOnSuccessListener(aVoid -> {
+                                        holder.joinButton.setText("Joined");
+                                        community.setMemberCount(community.getMemberCount() + 1);
+                                        Toast.makeText(context, "You have joined the community.", Toast.LENGTH_SHORT).show();
+                                        updateUserJoinedCommunities(true, community.getId());
+                                        notifyItemChanged(position); // Notify adapter of changes
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(context, "Error updating membership: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        }
+                    } else {
+                        Toast.makeText(context, "Community document does not exist", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(context, "Error fetching community document: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             } else {
-                community.joinCommunity();
-                updateCommunityStatusInFirestore(community, true);
+                Toast.makeText(context, "User ID is null", Toast.LENGTH_SHORT).show();
             }
-            notifyItemChanged(position);
         });
 
         // Set onClickListener for the item view (community card) to view community details
@@ -75,7 +118,6 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
                 intent.putExtra("communityDescription", community.getDescription());
                 intent.putExtra("memberCount", community.getMemberCount());
                 intent.putExtra("postCount", community.getPostCount());
-                intent.putExtra("isJoined", community.isJoined());
                 context.startActivity(intent);
             } else if (context instanceof MyCommunities) {
                 // Handle click for MyCommunities
@@ -86,7 +128,6 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
                 intent.putExtra("communityDescription", community.getDescription());
                 intent.putExtra("memberCount", community.getMemberCount());
                 intent.putExtra("postCount", community.getPostCount());
-                intent.putExtra("isJoined", community.isJoined());
                 context.startActivity(intent);
             }
         });
@@ -124,37 +165,44 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         void onCommunityClick(int position);
     }
 
-    private void updateCommunityStatusInFirestore(Community community, boolean isJoined) {
-        // Determine increment or decrement
-        int incrementValue = isJoined ? 1 : -1;
-
-        // Firestore update with atomic increment
-        DocumentReference communityRef = db.collection("community").document(community.getId());
-        communityRef.update(
-                "joined", isJoined,
-                "memberCount", FieldValue.increment(incrementValue)
-        ).addOnSuccessListener(aVoid -> {
-            community.setJoined(isJoined); // Update local state
-            community.setMemberCount(community.getMemberCount() + incrementValue); // Update local count
-
-            // If the user is joining, update the user's profile to include the community
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            DocumentReference userRef = db.collection("users").document(userId);
-            if (isJoined) {
-                // Add community to user's joined list
-                userRef.update("joinedCommunities", FieldValue.arrayUnion(community.getId()));
-            } else {
-                // Remove community from user's joined list
-                userRef.update("joinedCommunities", FieldValue.arrayRemove(community.getId()));
-            }
-
-            notifyDataSetChanged(); // Refresh the UI
-        }).addOnFailureListener(e -> {
-            Toast.makeText(context, "Failed to update membership: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+    private void checkJoinStatus(CommunityViewHolder holder, Community community) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (userId != null) {
+            DocumentReference communityRef = db.collection("community").document(community.getId());
+            communityRef.get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    List<String> members = (List<String>) documentSnapshot.get("members");
+                    if (members == null) {
+                        members = new ArrayList<>(); // Initialize members list if it's null
+                    }
+                    if (members.contains(userId)) {
+                        holder.joinButton.setText("Joined");
+                    } else {
+                        holder.joinButton.setText("Join");
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(context, "Error checking join status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 
+    private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (userId != null) {
+            DocumentReference userRef = db.collection("users").document(userId);
 
+            if (isJoined) {
+                // Add community to joinedCommunities if the user joins
+                userRef.update("joinedCommunities", FieldValue.arrayUnion(communityId))
+                        .addOnSuccessListener(aVoid -> Toast.makeText(context, "Community added to user.", Toast.LENGTH_SHORT).show());
+            } else {
+                // Remove community from joinedCommunities if the user leaves
+                userRef.update("joinedCommunities", FieldValue.arrayRemove(communityId))
+                        .addOnSuccessListener(aVoid -> Toast.makeText(context, "Community removed from user.", Toast.LENGTH_SHORT).show());
+            }
+        }
+    }
 }
 
 

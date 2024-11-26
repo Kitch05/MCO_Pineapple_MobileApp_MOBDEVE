@@ -2,6 +2,7 @@ package com.example.pineapple;
 
 import com.google.firebase.firestore.Exclude;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Community {
@@ -11,7 +12,6 @@ public class Community {
     private int memberCount;
     private int postCount;
     private String creatorId;
-    private boolean isJoined;
     private List<String> members;
 
     public Community() {
@@ -24,16 +24,15 @@ public class Community {
         this.memberCount = 0;
         this.postCount = 0;
         this.creatorId = "";
-        this.isJoined = false;
+        this.members = new ArrayList<>();
     }
 
-    public Community(String id, String name, String description, int memberCount, int postCount, boolean isJoined) {
+    public Community(String id, String name, String description, int memberCount, int postCount) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.memberCount = memberCount;
         this.postCount = postCount;
-        this.isJoined = isJoined;
     }
 
     @Exclude
@@ -61,20 +60,12 @@ public class Community {
         return postCount;
     }
 
-    public boolean isJoined() {
-        return isJoined;
-    }
-
     public void setMemberCount(int memberCount) {
         this.memberCount = memberCount;
     }
 
     public void setPostCount(int postCount) {
         this.postCount = postCount;
-    }
-
-    public void setJoined(boolean joined) {
-        isJoined = joined;
     }
 
     public void setName(String updatedName) {
@@ -99,19 +90,5 @@ public class Community {
 
     public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
-    }
-
-    public void joinCommunity() {
-        if (!isJoined) {
-            isJoined = true;  // Mark the user as a member
-            memberCount++;  // Increase the member count
-        }
-    }
-
-    public void leaveCommunity() {
-        if (isJoined) {
-            isJoined = false;  // Mark the user as not a member
-            memberCount--;  // Decrease the member count
-        }
     }
 }
