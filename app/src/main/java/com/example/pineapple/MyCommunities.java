@@ -99,7 +99,6 @@ public class MyCommunities extends BaseActivity {
                                         community.setId(document.getId());
                                         community.setMemberCount(document.getLong("memberCount").intValue());
                                         community.setPostCount(document.getLong("postCount").intValue());
-                                        community.setJoined(true);
                                         communitiesToLoad.add(community);
                                     }
                                 }
@@ -149,6 +148,7 @@ public class MyCommunities extends BaseActivity {
         communityAdapter.notifyDataSetChanged();
     }
 
+
     private void launchCommunityDetail(int position) {
         if (position < 0 || position >= myCommunityList.size()) {
             Toast.makeText(MyCommunities.this, "Invalid community position", Toast.LENGTH_SHORT).show();
@@ -163,7 +163,6 @@ public class MyCommunities extends BaseActivity {
         intent.putExtra("communityName", community.getName());
         intent.putExtra("communityDescription", community.getDescription());
         intent.putExtra("memberCount", community.getMemberCount());
-        intent.putExtra("isJoined", community.isJoined());
         intent.putExtra("postCount", community.getPostCount());
 
         // Log the data being passed to confirm
@@ -179,20 +178,18 @@ public class MyCommunities extends BaseActivity {
 
         if (resultCode == RESULT_OK && data != null) {
             String communityId = data.getStringExtra("communityId");
-            boolean isJoined = data.getBooleanExtra("isJoined", false);
             int updatedMemberCount = data.getIntExtra("memberCount", -1);
 
             // Find and update the community in the list
             for (int i = 0; i < myCommunityList.size(); i++) {
                 Community community = myCommunityList.get(i);
                 if (community.getId().equals(communityId)) {
-                    if (!isJoined) {
+                    if (updatedMemberCount == 0) {
                         // Remove the community if the user has left it
                         myCommunityList.remove(i);
                         communityAdapter.notifyItemRemoved(i);
                     } else {
                         // Update the community details if still joined
-                        community.setJoined(isJoined);
                         community.setMemberCount(updatedMemberCount);
                         communityAdapter.notifyItemChanged(i);
                     }
@@ -201,21 +198,6 @@ public class MyCommunities extends BaseActivity {
             }
         }
     }
-
-    private void updateCommunityInFirestore(Community community) {
-        db.collection("community")
-                .document(community.getId())
-                .set(community)  // Use set() to replace the document with the updated community data
-                .addOnSuccessListener(aVoid -> {
-                    // Show a toast when Firestore update is successful
-                    Toast.makeText(this, "Community updated in Firestore.", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    // Show a toast when there's an error updating Firestore
-                    Toast.makeText(this, "Error updating community in Firestore.", Toast.LENGTH_SHORT).show();
-                });
-    }
-
 
     private String getCurrentUserId() {
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
