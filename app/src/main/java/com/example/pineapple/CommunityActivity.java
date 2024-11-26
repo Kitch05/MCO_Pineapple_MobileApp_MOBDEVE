@@ -128,8 +128,6 @@ public class CommunityActivity extends BaseActivity {
         }
     }
 
-
-
     private void launchCommunityDetail(int position) {
         Community community = communityList.get(position);
         Intent intent = new Intent(CommunityActivity.this, CommunityDetailActivity.class);

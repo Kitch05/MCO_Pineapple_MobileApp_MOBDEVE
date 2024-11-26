@@ -78,7 +78,6 @@ public class MyCommunities extends BaseActivity {
     private void loadMyCommunities() {
         String userId = getCurrentUserId();
         if (userId != null) {
-            // Fetch the user's joined communities from the users collection
             db.collection("users").document(userId).get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
@@ -86,7 +85,6 @@ public class MyCommunities extends BaseActivity {
                             if (userDocument != null && userDocument.exists()) {
                                 List<String> joinedCommunities = (List<String>) userDocument.get("joinedCommunities");
                                 if (joinedCommunities != null && !joinedCommunities.isEmpty()) {
-                                    // Query the communities using the document IDs (community IDs) in the joinedCommunities list
                                     List<Community> communitiesToLoad = new ArrayList<>();
                                     for (String communityId : joinedCommunities) {
                                         db.collection("community").document(communityId).get()
@@ -99,19 +97,17 @@ public class MyCommunities extends BaseActivity {
                                                                 community.setId(document.getId());
                                                                 community.setMemberCount(document.getLong("memberCount").intValue());
                                                                 community.setPostCount(document.getLong("postCount").intValue());
+                                                                community.setJoined(true); // Mark as joined
                                                                 communitiesToLoad.add(community);
                                                             }
                                                         }
                                                     }
-                                                    // Once all communities are fetched, update the list
                                                     if (communitiesToLoad.size() == joinedCommunities.size()) {
                                                         originalCommunityList.clear();
                                                         originalCommunityList.addAll(communitiesToLoad);
                                                         myCommunityList.clear();
                                                         myCommunityList.addAll(communitiesToLoad);
                                                         communityAdapter.notifyDataSetChanged();
-
-                                                        // Toast to confirm data loading
                                                         Toast.makeText(MyCommunities.this, "Loaded " + communitiesToLoad.size() + " communities.", Toast.LENGTH_SHORT).show();
                                                     }
                                                 });
@@ -126,8 +122,6 @@ public class MyCommunities extends BaseActivity {
                     });
         }
     }
-
-
 
     private void filterCommunities(String query) {
         if (query.isEmpty()) {
@@ -170,6 +164,7 @@ public class MyCommunities extends BaseActivity {
         intent.putExtra("communityName", community.getName());
         intent.putExtra("communityDescription", community.getDescription());
         intent.putExtra("memberCount", community.getMemberCount());
+        intent.putExtra("isJoined", community.isJoined());
         intent.putExtra("postCount", community.getPostCount());
 
         // Log the data being passed to confirm
@@ -182,35 +177,25 @@ public class MyCommunities extends BaseActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_EDIT_COMMUNITY_REQUEST && resultCode == RESULT_OK && data != null) {
+        if (resultCode == RESULT_OK && data != null) {
             String communityId = data.getStringExtra("communityId");
-            int position = findCommunityPositionById(communityId);
+            boolean isJoined = data.getBooleanExtra("isJoined", false);
+            int updatedMemberCount = data.getIntExtra("memberCount", -1);
 
-            if (position != -1) {
-                Community updatedCommunity = myCommunityList.get(position);
-
-                boolean isJoined = data.getBooleanExtra("isJoined", false); // Assuming you pass this in the intent
-                int updatedMemberCount = updatedCommunity.getMemberCount();
-
-                if (isJoined) {
-                    updatedCommunity.setMemberCount(updatedMemberCount + 1); // Increment member count if joined
-                } else {
-                    updatedCommunity.setMemberCount(updatedMemberCount - 1); // Decrement member count if left
+            // Update community data
+            for (Community community : myCommunityList) {
+                if (community.getId().equals(communityId)) {
+                    community.setJoined(isJoined);
+                    community.setMemberCount(updatedMemberCount);
+                    break;
                 }
-
-                // Update Firestore document
-                db.collection("community").document(communityId)
-                        .update("memberCount", updatedCommunity.getMemberCount())
-                        .addOnSuccessListener(aVoid -> {
-                            communityAdapter.notifyItemChanged(position);
-
-                            // Update the user's joined communities list
-                            updateUserJoinedCommunities(isJoined, communityId);
-                        })
-                        .addOnFailureListener(e -> Toast.makeText(MyCommunities.this, "Error updating community.", Toast.LENGTH_SHORT).show());
             }
+
+            // Notify adapter to refresh the UI
+            communityAdapter.notifyDataSetChanged();
         }
     }
+
 
     private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
         String userId = getCurrentUserId();
@@ -218,12 +203,13 @@ public class MyCommunities extends BaseActivity {
             db.collection("users").document(userId)
                     .update("joinedCommunities", isJoined ? FieldValue.arrayUnion(communityId) : FieldValue.arrayRemove(communityId))
                     .addOnSuccessListener(aVoid -> {
-                        // Optionally, reload the communities to reflect the updated state
-                        loadMyCommunities();
+                        // Do not reload all communities here; rely on the local update instead
+                        Toast.makeText(MyCommunities.this, "User data updated.", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> Toast.makeText(MyCommunities.this, "Error updating user data.", Toast.LENGTH_SHORT).show());
         }
     }
+
 
 
     private int findCommunityPositionById(String communityId) {
