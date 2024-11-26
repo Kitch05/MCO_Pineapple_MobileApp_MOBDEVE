@@ -47,6 +47,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         holder.textViewName.setText(community.getName());
         holder.textViewDescription.setText(community.getDescription());
         holder.membersCountTextView.setText(community.getMemberCount() + " Members");
+        holder.postCountTextView.setText(community.getPostCount() + " Posts");
 
         // Update the Join button text based on whether the user has joined
         holder.joinButton.setText(community.isJoined() ? "Joined" : "Join");
@@ -106,6 +107,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
         TextView textViewName;
         TextView textViewDescription;
         TextView membersCountTextView;
+        TextView postCountTextView;
         Button joinButton;
 
         public CommunityViewHolder(@NonNull View itemView) {
@@ -114,6 +116,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
             textViewDescription = itemView.findViewById(R.id.communityDescription);
             membersCountTextView = itemView.findViewById(R.id.membersCount);
             joinButton = itemView.findViewById(R.id.joinCommunityButton);
+            postCountTextView = itemView.findViewById(R.id.postsCount);
         }
     }
 

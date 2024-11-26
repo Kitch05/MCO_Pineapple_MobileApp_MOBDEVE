@@ -21,6 +21,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private ImageView backButton;
     private RecyclerView postListRecyclerView;
     private ImageView editCommunityButton;
+    private ListenerRegistration postCountListener;
 
 
     private Community community;
@@ -104,6 +106,35 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
         // Join/Leave button logic
         joinLeaveButton.setOnClickListener(v -> toggleMembership(communityId));
+
+        listenForPostCountUpdates(communityId);
+    }
+
+    private void listenForPostCountUpdates(String communityId) {
+        DocumentReference communityRef = db.collection("community").document(communityId);
+
+        postCountListener = communityRef.addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.e("CommunityDetailActivity", "Error listening to post count updates", e);
+                return;
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                Long updatedPostCount = snapshot.getLong("postCount");
+                if (updatedPostCount != null) {
+                    postCount = updatedPostCount.intValue();
+                    postCountTextView.setText(String.valueOf(postCount)); // Update the UI
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (postCountListener != null) {
+            postCountListener.remove(); // Stop listening to Firestore updates when activity is destroyed
+        }
     }
 
 
@@ -156,20 +187,58 @@ public class CommunityDetailActivity extends AppCompatActivity {
     private void fetchPosts(String communityId) {
         db.collection("posts")
                 .whereEqualTo("community", communityId) // Filter by the community field
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        postList.clear();
-                        for (DocumentSnapshot document : task.getResult()) {
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        Log.e("CommunityDetailActivity", "Error fetching posts", e);
+                        return;
+                    }
+
+                    if (querySnapshot != null) {
+                        postList.clear();  // Clear the current list before adding new posts
+                        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
                             Post post = document.toObject(Post.class);
                             if (post != null) {
-                                post.setId(document.getId()); // Set Firestore document ID
-                                postList.add(post); // Add post to the list
+                                post.setId(document.getId());  // Set Firestore document ID
+
+                                // Fetch the community name using the community ID
+                                db.collection("community").document(communityId)
+                                        .get()
+                                        .addOnSuccessListener(documentSnapshot -> {
+                                            if (documentSnapshot.exists()) {
+                                                String communityName = documentSnapshot.getString("name");
+                                                if (communityName != null) {
+                                                    post.setCommunity(communityName);  // Set the community name in the post
+                                                    postList.add(post);  // Add post to the list
+                                                    postAdapter.notifyDataSetChanged(); // Notify the adapter to update the UI
+                                                }
+                                            }
+                                        })
+                                        .addOnFailureListener(ex -> {
+                                            Log.e("CommunityDetailActivity", "Error fetching community name", ex);
+                                        });
                             }
                         }
-                        postAdapter.notifyDataSetChanged();
-                    } else {
-                        Log.e("CommunityDetailActivity", "Error fetching posts", task.getException());
+                    }
+                });
+    }
+
+    private void fetchPostCount(String communityId) {
+        db.collection("posts")
+                .whereEqualTo("community", communityId)
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        Log.e("CommunityDetailActivity", "Error fetching posts", e);
+                        return;
+                    }
+
+                    if (querySnapshot != null) {
+                        int postCount = querySnapshot.size(); // Get count from snapshot size
+                        postCountTextView.setText(String.valueOf(postCount)); // Update UI
+
+                        // Optionally update Firestore community document
+
+                        updateCommunityPostCount(communityId, postCount);
+                        fetchUpdatedPostCount(communityId);
                     }
                 });
     }
@@ -249,7 +318,6 @@ public class CommunityDetailActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -258,12 +326,9 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 String postTitle = data.getStringExtra("title");
                 String postContent = data.getStringExtra("content");
                 String userId = data.getStringExtra("userId"); // Assuming userId is passed
-                Post newPost = new Post(postTitle, postContent, userId, community.getId());
-                postList.add(newPost);
-                postAdapter.notifyItemInserted(postList.size() - 1);
 
-                postCount++;
-                postCountTextView.setText(String.valueOf(postCount));
+                // Save post to Firestore
+                savePost(postTitle, postContent, userId, community.getId());
             } else if (requestCode == EDIT_POST_REQUEST_CODE) {
                 String postTitle = data.getStringExtra("title");
                 String postContent = data.getStringExtra("content");
@@ -291,28 +356,47 @@ public class CommunityDetailActivity extends AppCompatActivity {
                     }
                 }
             }
-
-            }
         }
+    }
+
 
     private void savePost(String title, String content, String userId, String communityId) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         Post post = new Post(title, content, userId, communityId);
 
         db.collection("posts")
                 .add(post)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(this, "Post added successfully!", Toast.LENGTH_SHORT).show();
-                    Intent resultIntent = new Intent();
-                    resultIntent.putExtra("title", title);
-                    resultIntent.putExtra("content", content);
-                    setResult(RESULT_OK, resultIntent);
-                    finish(); // Close the activity
+                    fetchPosts(communityId); // Re-fetch posts for the UI
+                    fetchPostCount(communityId); // Re-fetch post count
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
+    private void updateCommunityPostCount(String communityId, int newPostCount) {
+        DocumentReference communityRef = db.collection("community").document(communityId);
+        communityRef.update("postCount", newPostCount)
+                .addOnSuccessListener(aVoid -> Log.d("CommunityDetailActivity", "Post count updated in Firestore"))
+                .addOnFailureListener(e -> Log.e("CommunityDetailActivity", "Failed to update post count", e));
+    }
+
+    private void fetchUpdatedPostCount(String communityId) {
+        DocumentReference communityRef = db.collection("community").document(communityId);
+        communityRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                Long updatedPostCount = documentSnapshot.getLong("postCount");
+                if (updatedPostCount != null) {
+                    postCountTextView.setText(String.valueOf(updatedPostCount));
+                }
+            }
+        }).addOnFailureListener(e -> Log.e("CommunityDetailActivity", "Failed to fetch updated post count", e));
+    }
+
+
+
 
     private String getCurrentUserId() {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
