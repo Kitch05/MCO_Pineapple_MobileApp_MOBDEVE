@@ -6,6 +6,8 @@ public class Comment {
     private String userId; // ID of the user who posted the comment
     private String parentId; // The ID of the parent comment (null for top-level comments)
     private long timestamp; // Timestamp when the comment was created
+    private int upvotes;
+    private int downvotes;
 
     // Firestore requires an empty constructor
     public Comment() {}
@@ -16,7 +18,21 @@ public class Comment {
         this.parentId = parentId;
         this.timestamp = timestamp;
     }
+    public int getUpvotes() {
+        return upvotes;
+    }
 
+    public void setUpvotes(int upvotes) {
+        this.upvotes = upvotes;
+    }
+
+    public int getDownvotes() {
+        return downvotes;
+    }
+
+    public void setDownvotes(int downvotes) {
+        this.downvotes = downvotes;
+    }
     // Getters and setters
     public String getId() {
         return id;

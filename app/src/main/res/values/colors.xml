@@ -6,10 +6,6 @@
     <color name="accent">#1ED760</color>
     <color name="border">#343536</color>
 
-    <!-- Custom Colors -->
-    <color name="comment_background">#121212</color>
-    <color name="button_background">#1ED760</color>
-
     <!-- Default Colors -->
     <color name="purple_500">#9C27B0</color>
 </resources>

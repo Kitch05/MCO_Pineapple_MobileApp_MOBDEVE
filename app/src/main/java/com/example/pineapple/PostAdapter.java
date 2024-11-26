@@ -54,6 +54,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.textViewContent.setText(post.getContent() != null ? post.getContent() : "No Content");
         holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
         holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
+        holder.commentCount.setText(String.valueOf(post.getCommentCount())); // Display comment count
 
         // Fetch and display community name
         String communityId = post.getCommunity();
@@ -103,7 +104,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId != null && currentUserId.equals(post.getUserId())) {
             holder.editIcon.setVisibility(View.VISIBLE);
-            holder.editIcon.setOnClickListener(v -> onEditClickListener.onEditClick(position));
+            holder.editIcon.setOnClickListener(v -> {
+                Intent intent = new Intent(context, AddEditPostActivity.class);
+                intent.putExtra("postId", post.getId()); // Pass the postId
+                intent.putExtra("title", post.getTitle()); // Pass the title
+                intent.putExtra("content", post.getContent()); // Pass the content
+                intent.putExtra("community", post.getCommunity()); // Pass the community ID
+                context.startActivity(intent); // Launch the activity
+            });
+
         } else {
             holder.editIcon.setVisibility(View.GONE);
         }
@@ -186,6 +195,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                 .addOnFailureListener(e -> isVoting = false); // Reset voting state if query fails
     }
 
+    public void updateList(List<Post> updatedList) {
+        this.postData = updatedList;
+        notifyDataSetChanged();
+    }
+
     private void adjustVoteCounts(PostViewHolder holder, Post post, boolean isUpvote, boolean increment) {
         if (increment) {
             if (isUpvote) {
@@ -199,7 +213,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             if (isUpvote && post.getUpvoteCount() > 0) post.setUpvoteCount(post.getUpvoteCount() - 1);
             if (!isUpvote && post.getDownvoteCount() > 0) post.setDownvoteCount(post.getDownvoteCount() - 1);
         }
-
         // Update Firestore
         db.collection("posts").document(post.getId())
                 .update("upvoteCount", post.getUpvoteCount(), "downvoteCount", post.getDownvoteCount())
@@ -217,7 +230,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
-        TextView textViewTitle, textViewContent, textViewUsername, textViewCommunity, upvoteCount, downvoteCount;
+        TextView textViewTitle, textViewContent, textViewUsername, textViewCommunity, upvoteCount, downvoteCount, commentCount; // Added commentCount
         ImageView editIcon, upvoteIcon, downvoteIcon;
 
         public PostViewHolder(@NonNull View itemView) {
@@ -228,11 +241,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             textViewCommunity = itemView.findViewById(R.id.postCommunity);
             upvoteCount = itemView.findViewById(R.id.upvoteCount);
             downvoteCount = itemView.findViewById(R.id.downvoteCount);
+            commentCount = itemView.findViewById(R.id.commentCount); // Bind the commentCount TextView
             editIcon = itemView.findViewById(R.id.editPostIcon);
             upvoteIcon = itemView.findViewById(R.id.upvoteIcon);
             downvoteIcon = itemView.findViewById(R.id.downvoteIcon);
         }
     }
+
 
     public interface OnEditClickListener {
         void onEditClick(int position);

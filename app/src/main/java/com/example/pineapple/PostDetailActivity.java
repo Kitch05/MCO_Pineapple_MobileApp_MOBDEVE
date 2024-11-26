@@ -1,6 +1,5 @@
 package com.example.pineapple;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -9,12 +8,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -22,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PostDetailActivity extends AppCompatActivity {
+public class PostDetailActivity extends BaseActivity {
     private static final String TAG = "PostDetailActivity";
 
     private TextView postTitle, postContent, postCommunity, postAuthor;
@@ -36,27 +35,15 @@ public class PostDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_post_detail);
+        setActivityLayout(R.layout.activity_post_detail);
 
-        // Initialize Firestore
         db = FirebaseFirestore.getInstance();
+        initializeViews();
 
-        // Initialize views
-        postTitle = findViewById(R.id.postDetailTitle);
-        postContent = findViewById(R.id.postDetailContent);
-        postCommunity = findViewById(R.id.postCommunity);
-        postAuthor = findViewById(R.id.userDetailName);
-        commentInput = findViewById(R.id.commentInput);
-        submitCommentButton = findViewById(R.id.submitCommentButton);
-        commentRecyclerView = findViewById(R.id.commentRecyclerView);
-
-        commentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Get postId from Intent
         postId = getIntent().getStringExtra("postId");
 
-        if (postId == null) {
-            Toast.makeText(this, "Error: Post not found!", Toast.LENGTH_SHORT).show();
+        if (postId == null || postId.isEmpty()) {
+            showToast("Error: Invalid post ID");
             finish();
             return;
         }
@@ -65,15 +52,33 @@ public class PostDetailActivity extends AppCompatActivity {
         fetchPostDetails();
         fetchComments();
 
-        // Set up submit button
+        // Listen for real-time changes
+        listenForCommentChanges();
+
         submitCommentButton.setOnClickListener(v -> {
             String content = commentInput.getText().toString().trim();
             if (!content.isEmpty()) {
-                submitComment(content, null); // Pass null for parentId to indicate a top-level comment
+                submitComment(content, null);
             } else {
-                Toast.makeText(this, "Comment cannot be empty", Toast.LENGTH_SHORT).show();
+                showToast("Comment cannot be empty");
             }
         });
+    }
+
+    private void initializeViews() {
+        postTitle = findViewById(R.id.postDetailTitle);
+        postContent = findViewById(R.id.postDetailContent);
+        postCommunity = findViewById(R.id.postCommunity);
+        postAuthor = findViewById(R.id.userDetailName);
+        commentInput = findViewById(R.id.commentInput);
+        submitCommentButton = findViewById(R.id.submitCommentButton);
+        commentRecyclerView = findViewById(R.id.commentRecyclerView);
+        ImageView backButton = findViewById(R.id.backButton);
+
+        // Back button functionality
+        backButton.setOnClickListener(v -> onBackPressed());
+
+        commentRecyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void fetchPostDetails() {
@@ -84,77 +89,122 @@ public class PostDetailActivity extends AppCompatActivity {
                         if (post != null) {
                             populatePostDetails(post);
                         } else {
-                            Toast.makeText(this, "Error loading post details.", Toast.LENGTH_SHORT).show();
+                            showToast("Error loading post details.");
                         }
+                    } else {
+                        showToast("Post not found.");
+                        finish();
                     }
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching post details", e));
+                .addOnFailureListener(e -> logError("Error fetching post details", e));
     }
 
     private void populatePostDetails(Post post) {
         postTitle.setText(post.getTitle());
         postContent.setText(post.getContent());
 
-        // Fetch the community name using the community ID (post.getCommunity())
-        String communityId = post.getCommunity();
+        fetchCommunityName(post.getCommunity());
+        fetchAuthorUsername(post.getUserId());
+    }
+
+    private void fetchCommunityName(String communityId) {
         db.collection("community").document(communityId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String communityName = documentSnapshot.getString("name");  // Fetch the community name
-                        if (communityName != null) {
-                            postCommunity.setText(communityName);  // Set the community name in the TextView
-                        } else {
-                            postCommunity.setText("Unknown Community");
-                        }
-                    } else {
-                        postCommunity.setText("Community not found");
-                    }
+                    String communityName = documentSnapshot.getString("name");
+                    postCommunity.setText(communityName != null ? communityName : "Unknown Community");
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error fetching community name", e);
+                    logError("Error fetching community name", e);
                     postCommunity.setText("Error loading community");
                 });
+    }
 
-        // Fetch the author's username
-        db.collection("users").document(post.getUserId()).get()
+    private void fetchAuthorUsername(String userId) {
+        db.collection("users").document(userId)
+                .get()
                 .addOnSuccessListener(userSnapshot -> {
                     String username = userSnapshot.getString("username");
                     postAuthor.setText(username != null ? username : "Unknown User");
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching username", e));
+                .addOnFailureListener(e -> logError("Error fetching username", e));
     }
-
 
     private void submitComment(String content, String parentId) {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null) {
-            Toast.makeText(this, "Please log in to comment.", Toast.LENGTH_SHORT).show();
+            showToast("Please log in to comment.");
             return;
         }
 
-        // Create a new Comment object
         Comment newComment = new Comment(content, currentUserId, parentId, System.currentTimeMillis());
 
-        // Add the comment to Firestore
         db.collection("posts").document(postId).collection("comments")
                 .add(newComment)
                 .addOnSuccessListener(documentReference -> {
-                    // Update the Firestore document with its generated ID
                     String commentId = documentReference.getId();
-                    db.collection("posts").document(postId)
-                            .collection("comments").document(commentId)
-                            .update("id", commentId)
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(this, "Comment submitted successfully!", Toast.LENGTH_SHORT).show();
-                                commentInput.setText(""); // Clear the input field
-                                fetchComments(); // Refresh comments
-                            })
-                            .addOnFailureListener(e -> Log.e(TAG, "Error updating comment ID", e));
+                    updateCommentIdAndPostCount(commentId); // Update comment count after adding comment
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error submitting comment", e));
+                .addOnFailureListener(e -> logError("Error submitting comment", e));
     }
 
+    private void updateCommentIdAndPostCount(String commentId) {
+        // Update the comment ID
+        db.collection("posts").document(postId).collection("comments").document(commentId)
+                .update("id", commentId)
+                .addOnSuccessListener(aVoid -> {
+                    // Increment commentCount in the post
+                    db.collection("posts").document(postId)
+                            .update("commentCount", FieldValue.increment(1))
+                            .addOnSuccessListener(aVoid2 -> {
+                                showToast("Comment submitted successfully!");
+                                commentInput.setText(""); // Clear input field
+                                fetchComments(); // Refresh comments
+                            })
+                            .addOnFailureListener(e -> logError("Error updating comment count", e));
+                })
+                .addOnFailureListener(e -> logError("Error updating comment ID", e));
+    }
+    private void listenForCommentChanges() {
+        db.collection("posts").document(postId).collection("comments")
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Error listening for comments", e);
+                        return;
+                    }
+
+                    if (queryDocumentSnapshots != null) {
+                        List<Comment> allComments = new ArrayList<>();
+                        for (DocumentSnapshot snapshot : queryDocumentSnapshots.getDocuments()) {
+                            Comment comment = snapshot.toObject(Comment.class);
+                            if (comment != null) {
+                                comment.setId(snapshot.getId());
+                                allComments.add(comment);
+                            }
+                        }
+
+                        int totalComments = countNestedComments(null, allComments);
+
+                        db.collection("posts").document(postId)
+                                .update("commentCount", totalComments)
+                                .addOnSuccessListener(aVoid -> {
+                                    showToast("Updated comment count: " + totalComments);
+                                });
+                    }
+                });
+    }
+
+    private int countNestedComments(String parentId, List<Comment> allComments) {
+        int count = 0;
+        for (Comment comment : allComments) {
+            if ((parentId == null && comment.getParentId() == null) ||
+                    (parentId != null && parentId.equals(comment.getParentId()))) {
+                count += 1;
+                count += countNestedComments(comment.getId(), allComments);
+            }
+        }
+        return count;
+    }
 
     private void fetchComments() {
         db.collection("posts").document(postId).collection("comments")
@@ -167,7 +217,7 @@ public class PostDetailActivity extends AppCompatActivity {
                     for (DocumentSnapshot snapshot : queryDocumentSnapshots) {
                         Comment comment = snapshot.toObject(Comment.class);
                         if (comment != null) {
-                            comment.setId(snapshot.getId()); // Set the Firestore document ID as the comment ID
+                            comment.setId(snapshot.getId());
                             allComments.add(comment);
 
                             // Build a map of comment threads
@@ -177,7 +227,6 @@ public class PostDetailActivity extends AppCompatActivity {
                         }
                     }
 
-                    // Update the adapter with top-level comments and threads
                     List<Comment> topLevelComments = new ArrayList<>();
                     for (Comment comment : allComments) {
                         if (comment.getParentId() == null) {
@@ -185,34 +234,19 @@ public class PostDetailActivity extends AppCompatActivity {
                         }
                     }
 
-                    CommentAdapter adapter = new CommentAdapter(PostDetailActivity.this, topLevelComments, threads, postId, 0);
+                    CommentAdapter adapter = new CommentAdapter(
+                            PostDetailActivity.this, topLevelComments, threads, postId, 0
+                    );
                     commentRecyclerView.setAdapter(adapter);
                 })
-                .addOnFailureListener(e -> Log.e(TAG, "Error fetching comments", e));
+                .addOnFailureListener(e -> logError("Error fetching comments", e));
     }
 
-
-    private void displayComments(List<Comment> comments) {
-        // Build a map of comment threads
-        Map<String, List<Comment>> commentThreads = new HashMap<>();
-        for (Comment comment : comments) {
-            if (comment.getParentId() == null) {
-                // Top-level comments
-                commentThreads.computeIfAbsent("topLevel", k -> new ArrayList<>()).add(comment);
-            } else {
-                // Replies to comments
-                commentThreads.computeIfAbsent(comment.getParentId(), k -> new ArrayList<>()).add(comment);
-            }
-        }
-
-        // Create the adapter using top-level comments and commentThreads
-        List<Comment> topLevelComments = commentThreads.get("topLevel"); // Retrieve top-level comments
-        if (topLevelComments == null) {
-            topLevelComments = new ArrayList<>(); // Ensure no null pointer exceptions
-        }
-
-        CommentAdapter adapter = new CommentAdapter(this, topLevelComments, commentThreads, postId, 0);
-        commentRecyclerView.setAdapter(adapter);
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    private void logError(String message, Exception e) {
+        Log.e(TAG, message, e);
+    }
 }

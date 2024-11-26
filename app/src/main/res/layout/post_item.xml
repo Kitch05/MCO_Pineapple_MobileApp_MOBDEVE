@@ -94,7 +94,7 @@
             android:layout_marginTop="4dp"
             android:textSize="14sp"
             android:textColor="#A9A9A9"
-            android:fontFamily="sans-serif" />
+            android:fontFamily="sans-serif" />z
 
         <!-- Upvote/Downvote/Comment Section -->
         <RelativeLayout
@@ -117,7 +117,7 @@
                 <ImageView
                     android:id="@+id/upvoteIcon"
                     android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_height="match_parent"
                     android:src="@drawable/upvoteicon"
                     app:tint="#F1F6F9" />
 

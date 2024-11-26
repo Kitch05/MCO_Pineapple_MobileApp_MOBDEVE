@@ -2,7 +2,10 @@ package com.example.pineapple;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -10,9 +13,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.pineapple.databinding.ActivityMainBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -21,13 +24,14 @@ import java.util.List;
 
 public class MainActivity extends BaseActivity {
 
-    ActivityMainBinding binding;
-    BottomNavigationView navbar;
+    private BottomNavigationView navbar;
     private RecyclerView recyclerView;
     private PostAdapter postAdapter;
     private List<Post> postList;
+    private List<Post> originalPostList; // Full unfiltered list
     private Button addPostButton;
     private ActivityResultLauncher<Intent> addEditPostLauncher;
+    private EditText searchBar;
 
     // Firestore instance and collection reference
     private FirebaseFirestore db;
@@ -47,15 +51,19 @@ public class MainActivity extends BaseActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         postList = new ArrayList<>();
+        originalPostList = new ArrayList<>(); // Initialize unfiltered list
         postAdapter = new PostAdapter(this, postList, this::launchEditPost, this::launchPostDetail);
         recyclerView.setAdapter(postAdapter);
 
         addPostButton = findViewById(R.id.addPostButton);
         addPostButton.setOnClickListener(v -> launchAddPost());
 
+        searchBar = findViewById(R.id.searchBar);
+
         // Load posts from Firestore
         loadPostsFromFirestore();
 
+        // Register for activity results
         addEditPostLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -64,7 +72,7 @@ public class MainActivity extends BaseActivity {
                         String title = data.getStringExtra("title");
                         String content = data.getStringExtra("content");
                         String community = data.getStringExtra("community");
-                        String userId = data.getStringExtra("userId"); // Assume userId is passed
+                        String userId = data.getStringExtra("userId");
                         int position = data.getIntExtra("position", -1);
 
                         if (position == -1) {
@@ -80,6 +88,24 @@ public class MainActivity extends BaseActivity {
                     }
                 }
         );
+
+        // Add search functionality
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No action needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterPosts(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // No action needed
+            }
+        });
     }
 
     private void launchAddPost() {
@@ -109,19 +135,25 @@ public class MainActivity extends BaseActivity {
     }
 
     private void loadPostsFromFirestore() {
-        postsCollection.get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    postList.clear();
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Post post = document.toObject(Post.class);
-                        post.setId(document.getId()); // Save document ID for updates
-                        postList.add(post);
-                    }
-                    postAdapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error loading posts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        postsCollection.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            if (e != null) {
+                Toast.makeText(this, "Error loading posts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            postList.clear();
+            originalPostList.clear();
+            for (DocumentSnapshot document : queryDocumentSnapshots.getDocuments()) {
+                Post post = document.toObject(Post.class);
+                if (post != null) {
+                    post.setId(document.getId()); // Save Firestore document ID
+                    postList.add(post);
+                    originalPostList.add(post);
+                }
+            }
+
+            postAdapter.notifyDataSetChanged();
+        });
     }
 
     private void savePostToFirestore(Post post) {
@@ -129,6 +161,7 @@ public class MainActivity extends BaseActivity {
                 .addOnSuccessListener(documentReference -> {
                     post.setId(documentReference.getId());
                     postList.add(0, post);
+                    originalPostList.add(0, post); // Keep the original list updated
                     postAdapter.notifyItemInserted(0);
                     recyclerView.scrollToPosition(0);
                 })
@@ -150,5 +183,24 @@ public class MainActivity extends BaseActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to update post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void filterPosts(String query) {
+        if (query.isEmpty()) {
+            postAdapter.updateList(originalPostList); // Reset to the original list
+        } else {
+            List<Post> filteredList = new ArrayList<>();
+            for (Post post : originalPostList) {
+                if (post.getTitle().toLowerCase().contains(query.toLowerCase()) ||
+                        (post.getContent() != null && post.getContent().toLowerCase().contains(query.toLowerCase()))) {
+                    filteredList.add(post);
+                }
+            }
+            postAdapter.updateList(filteredList);
+
+            if (filteredList.isEmpty()) {
+                Toast.makeText(this, "No posts found for: " + query, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

@@ -1,11 +1,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="8dp"
-    android:background="@color/comment_background">
+    android:background="#1A1A1A">
 
-    <!-- Comment Section -->
+    <!-- Comment Content -->
     <TextView
         android:id="@+id/commentContent"
         android:layout_width="wrap_content"
@@ -20,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_horizontal">
+        android:gravity="start">
 
         <TextView
             android:id="@+id/commentUsername"
@@ -70,9 +71,59 @@
             android:layout_height="wrap_content"
             android:text="Submit"
             android:layout_marginStart="8dp"
-            android:backgroundTint="@color/button_background"
+            android:backgroundTint="#6B50A4"
             android:textColor="#FFFFFF"
             android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Voting Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="4dp"
+        android:layout_marginTop="8dp">
+
+        <!-- Upvote Button -->
+        <ImageButton
+            android:id="@+id/upvoteButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/upvoteicon"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#F1F6F9"
+            android:contentDescription="Upvote" />
+
+
+        <!-- Upvote Count -->
+        <TextView
+            android:id="@+id/upvoteCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="8dp" />
+
+        <!-- Downvote Button -->
+        <ImageButton
+            android:id="@+id/downvoteButton"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/downvote"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Downvote"
+            app:tint="#F1F6F9"/>
+
+        <!-- Downvote Count -->
+        <TextView
+            android:id="@+id/downvoteCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="8dp"
+            app:tint="#F1F6F9"/>
     </LinearLayout>
 
     <!-- Reply Button -->
@@ -82,7 +133,7 @@
         android:layout_height="wrap_content"
         android:text="Reply"
         android:textSize="12sp"
-        android:backgroundTint="@color/button_background"
+        android:backgroundTint="#6B50A4"
         android:textColor="#FFFFFF"
         android:layout_marginTop="8dp" />
 

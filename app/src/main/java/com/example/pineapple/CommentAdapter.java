@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -20,6 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -28,9 +30,9 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     private Context context;
     private List<Comment> comments;
-    private Map<String, List<Comment>> commentThreads; // Map for nested replies
-    private String postId; // ID of the current post
-    private int depth; // Depth of the current comment for indentation
+    private Map<String, List<Comment>> commentThreads;
+    private String postId;
+    private int depth;
 
     public CommentAdapter(Context context, List<Comment> comments, Map<String, List<Comment>> commentThreads, String postId, int depth) {
         this.context = context;
@@ -53,8 +55,9 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
         holder.commentContent.setText(comment.getContent());
         holder.commentTimestamp.setText(formatTimestamp(comment.getTimestamp()));
+        holder.upvoteCount.setText(String.valueOf(comment.getUpvotes()));
+        holder.downvoteCount.setText(String.valueOf(comment.getDownvotes()));
 
-        // Fetch and display the username
         FirebaseFirestore.getInstance().collection("users").document(comment.getUserId())
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -63,12 +66,10 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                 })
                 .addOnFailureListener(e -> holder.commentUsername.setText("Unknown User"));
 
-        // Adjust padding for nested replies
-        int paddingLeft = 40 * depth; // Indent each level by 40dp
+        int paddingLeft = 40 * depth;
         holder.itemView.setPadding(paddingLeft, holder.itemView.getPaddingTop(),
                 holder.itemView.getPaddingRight(), holder.itemView.getPaddingBottom());
 
-        // Handle nested replies
         if (commentThreads.containsKey(comment.getId())) {
             List<Comment> replies = commentThreads.get(comment.getId());
             CommentAdapter replyAdapter = new CommentAdapter(context, replies, commentThreads, postId, depth + 1);
@@ -79,7 +80,6 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             holder.repliesRecyclerView.setVisibility(View.GONE);
         }
 
-        // Handle reply button
         holder.replyButton.setOnClickListener(v -> {
             if (holder.replyContainer.getVisibility() == View.GONE) {
                 holder.replyContainer.setVisibility(View.VISIBLE);
@@ -91,12 +91,93 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         holder.submitReplyButton.setOnClickListener(v -> {
             String replyContent = holder.replyInput.getText().toString().trim();
             if (!replyContent.isEmpty()) {
-                submitReply(replyContent, comment.getId()); // Pass parent comment ID
-                holder.replyInput.setText(""); // Clear input field
-                holder.replyContainer.setVisibility(View.GONE); // Hide input after submitting
+                submitReply(replyContent, comment.getId());
+                holder.replyInput.setText("");
+                holder.replyContainer.setVisibility(View.GONE);
             }
         });
 
+        holder.upvoteButton.setOnClickListener(v -> {
+            Log.d("VoteDebug", "Upvote button clicked for comment: " + comment.getId());
+            handleVote(holder, comment, true);
+        });
+
+        holder.downvoteButton.setOnClickListener(v -> {
+            Log.d("VoteDebug", "Downvote button clicked for comment: " + comment.getId());
+            handleVote(holder, comment, false);
+        });
+    }
+
+    private void handleVote(CommentViewHolder holder, Comment comment, boolean isUpvote) {
+        String currentUserId = FirebaseAuth.getInstance().getUid();
+        if (currentUserId == null || comment.getId() == null) {
+            Log.e("VoteError", "User ID or Comment ID is null");
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("votes")
+                .whereEqualTo("commentId", comment.getId())
+                .whereEqualTo("userId", currentUserId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        String voteId = querySnapshot.getDocuments().get(0).getId();
+                        String existingVoteType = querySnapshot.getDocuments().get(0).getString("voteType");
+
+                        if ((isUpvote && "upvote".equals(existingVoteType)) || (!isUpvote && "downvote".equals(existingVoteType))) {
+                            // Remove vote if it's the same as the current action
+                            db.collection("votes").document(voteId).delete()
+                                    .addOnSuccessListener(aVoid -> adjustVoteCounts(holder, comment, isUpvote, false, true));
+                        } else {
+                            // Change vote type
+                            db.collection("votes").document(voteId)
+                                    .update("voteType", isUpvote ? "upvote" : "downvote")
+                                    .addOnSuccessListener(aVoid -> adjustVoteCounts(holder, comment, isUpvote, true, true));
+                        }
+                    } else {
+                        // Add a new vote
+                        Map<String, Object> voteData = new HashMap<>();
+                        voteData.put("commentId", comment.getId());
+                        voteData.put("userId", currentUserId);
+                        voteData.put("voteType", isUpvote ? "upvote" : "downvote");
+
+                        db.collection("votes").add(voteData)
+                                .addOnSuccessListener(aVoid -> adjustVoteCounts(holder, comment, isUpvote, true, false));
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("VoteError", "Error handling vote", e));
+    }
+
+    private void adjustVoteCounts(CommentViewHolder holder, Comment comment, boolean isUpvote, boolean increment, boolean isSwitch) {
+        if (increment) {
+            if (isUpvote) {
+                comment.setUpvotes(comment.getUpvotes() + 1);
+                if (isSwitch && comment.getDownvotes() > 0) comment.setDownvotes(comment.getDownvotes() - 1);
+            } else {
+                comment.setDownvotes(comment.getDownvotes() + 1);
+                if (isSwitch && comment.getUpvotes() > 0) comment.setUpvotes(comment.getUpvotes() - 1);
+            }
+        } else {
+            if (isUpvote && comment.getUpvotes() > 0) {
+                comment.setUpvotes(comment.getUpvotes() - 1);
+            }
+            if (!isUpvote && comment.getDownvotes() > 0) {
+                comment.setDownvotes(comment.getDownvotes() - 1);
+            }
+        }
+
+        // Update UI
+        holder.upvoteCount.setText(String.valueOf(comment.getUpvotes()));
+        holder.downvoteCount.setText(String.valueOf(comment.getDownvotes()));
+
+        // Update Firestore
+        FirebaseFirestore.getInstance().collection("comments")
+                .document(comment.getId())
+                .update("upvotes", comment.getUpvotes(), "downvotes", comment.getDownvotes())
+                .addOnSuccessListener(aVoid -> Log.d("Firestore", "Vote counts updated"))
+                .addOnFailureListener(e -> Log.e("Firestore", "Failed to update vote counts", e));
     }
 
     @Override
@@ -104,68 +185,61 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         return comments.size();
     }
 
-    // Helper: Format timestamp
     private String formatTimestamp(long timestamp) {
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault());
         return sdf.format(new Date(timestamp));
     }
 
-    // Helper: Submit a reply to Firestore
     private void submitReply(String content, String parentId) {
         String currentUserId = FirebaseAuth.getInstance().getUid();
         if (currentUserId == null || postId == null || parentId == null) return;
 
-        // Create reply with the correct parentId
         Comment reply = new Comment(content, currentUserId, parentId, System.currentTimeMillis());
 
         FirebaseFirestore.getInstance().collection("posts").document(postId)
                 .collection("comments")
-                .add(reply) // Add the reply to Firestore
+                .add(reply)
                 .addOnSuccessListener(documentReference -> {
-                    // Set the Firestore document ID as the reply ID in Firestore
                     String replyId = documentReference.getId();
+                    reply.setId(replyId);
                     FirebaseFirestore.getInstance().collection("posts").document(postId)
                             .collection("comments").document(replyId)
-                            .update("id", replyId) // Update the reply with its generated ID
+                            .update("id", replyId)
                             .addOnSuccessListener(aVoid -> {
-                                // Add the reply to the local commentThreads map
                                 if (!commentThreads.containsKey(parentId)) {
                                     commentThreads.put(parentId, new ArrayList<>());
                                 }
-                                reply.setId(replyId); // Set the reply's ID
-                                commentThreads.get(parentId).add(reply); // Add the reply to its parent's thread
-
-                                // Notify the adapter to refresh the UI
+                                commentThreads.get(parentId).add(reply);
                                 notifyDataSetChanged();
                             })
-                            .addOnFailureListener(e -> {
-                                // Handle failure to update the document
-                                Log.e("CommentAdapter", "Failed to update reply ID", e);
-                            });
+                            .addOnFailureListener(e -> Log.e("CommentAdapter", "Failed to set reply ID", e));
                 })
-                .addOnFailureListener(e -> {
-                    // Handle failure to add the reply
-                    Log.e("CommentAdapter", "Failed to submit reply", e);
-                });
+                .addOnFailureListener(e -> Log.e("CommentAdapter", "Failed to submit reply", e));
     }
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
-        TextView commentContent, commentUsername, commentTimestamp;
+        TextView commentContent, commentUsername, commentTimestamp, upvoteCount, downvoteCount;
+        ImageButton upvoteButton, downvoteButton;
         RecyclerView repliesRecyclerView;
         Button replyButton, submitReplyButton;
         EditText replyInput;
-        LinearLayout replyContainer; // Add replyContainer
+        LinearLayout replyContainer;
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
+
             commentContent = itemView.findViewById(R.id.commentContent);
             commentUsername = itemView.findViewById(R.id.commentUsername);
             commentTimestamp = itemView.findViewById(R.id.commentTimestamp);
-            repliesRecyclerView = itemView.findViewById(R.id.repliesRecyclerView);
+            upvoteCount = itemView.findViewById(R.id.upvoteCount);
+            downvoteCount = itemView.findViewById(R.id.downvoteCount);
+            upvoteButton = itemView.findViewById(R.id.upvoteButton);
+            downvoteButton = itemView.findViewById(R.id.downvoteButton);
             replyButton = itemView.findViewById(R.id.replyButton);
             submitReplyButton = itemView.findViewById(R.id.submitReplyButton);
             replyInput = itemView.findViewById(R.id.replyInput);
-            replyContainer = itemView.findViewById(R.id.replyContainer); // Initialize replyContainer
+            replyContainer = itemView.findViewById(R.id.replyContainer);
+            repliesRecyclerView = itemView.findViewById(R.id.repliesRecyclerView);
         }
     }
 }

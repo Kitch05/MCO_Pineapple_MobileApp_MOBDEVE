@@ -40,23 +40,28 @@ public class AddEditPostActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_post);
 
-        // Initialize UI components
         postTitleInput = findViewById(R.id.postTitleInput);
         postContentInput = findViewById(R.id.postContentInput);
         savePostButton = findViewById(R.id.savePostButton);
         backButton = findViewById(R.id.backButton);
         communitySpinner = findViewById(R.id.communitySpinner);
 
-        // Initialize Firestore instance
         db = FirebaseFirestore.getInstance();
 
         backButton.setOnClickListener(v -> onBackPressed());
 
-        // Fetch and populate communities in the Spinner
         populateCommunitiesSpinner();
 
         Intent intent = getIntent();
         String defaultCommunityId = intent.getStringExtra("communityId");
+        String postId = intent.getStringExtra("postId"); // Debugging postId
+
+        // Log the postId to check if it is received
+        if (postId != null) {
+            Toast.makeText(this, "Editing Post ID: " + postId, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Creating New Post", Toast.LENGTH_SHORT).show();
+        }
 
         if (intent.hasExtra("title") && intent.hasExtra("content")) {
             position = intent.getIntExtra("position", -1);
@@ -129,8 +134,8 @@ public class AddEditPostActivity extends AppCompatActivity {
     private void saveOrUpdatePost() {
         String title = postTitleInput.getText().toString().trim();
         String content = postContentInput.getText().toString().trim();
-        String communityName = communitySpinner.getSelectedItem().toString();  // Get selected community name
-        String currentUserId = FirebaseAuth.getInstance().getUid();  // Get the current user's UID
+        String communityName = communitySpinner.getSelectedItem().toString(); // Get selected community name
+        String currentUserId = FirebaseAuth.getInstance().getUid(); // Get the current user's UID
 
         if (!title.isEmpty() && !content.isEmpty() && !communityName.equals("Select Community")) {
             if (currentUserId == null) {
@@ -141,34 +146,55 @@ public class AddEditPostActivity extends AppCompatActivity {
             // Get the community ID from the map
             String communityId = communityMap.get(communityName);
 
-            // Create a Post object with community ID
-            Post newPost = new Post(title, content, currentUserId, communityId);
+            // Check if editing an existing post
+            Intent intent = getIntent();
+            String postId = intent.getStringExtra("postId"); // Get the postId from intent
 
-            // Save post to Firestore
-            db.collection("posts")
-                    .add(newPost)  // Add the post to Firestore
-                    .addOnSuccessListener(documentReference -> {
-                        // Set the Firestore document ID as the postId
-                        String postId = documentReference.getId();
-                        newPost.setId(postId);  // Update the Post object with the ID
+            if (postId != null && !postId.isEmpty()) {
+                // Update the existing post
+                Map<String, Object> postUpdates = new HashMap<>();
+                postUpdates.put("title", title);
+                postUpdates.put("content", content);
+                postUpdates.put("community", communityId);
 
-                        // Update the post in Firestore with the postId
-                        db.collection("posts").document(postId)
-                                .update("id", postId)
-                                .addOnSuccessListener(aVoid -> {
-                                    // Increment the post count in the community document
-                                    incrementCommunityPostCount(communityId);
+                db.collection("posts").document(postId)
+                        .update(postUpdates)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(this, "Post updated successfully!", Toast.LENGTH_SHORT).show();
+                            finish(); // Close the activity
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(this, "Error updating post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                // Create a new post
+                Post newPost = new Post(title, content, currentUserId, communityId);
 
-                                    Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
-                                    finish();  // Close the activity
-                                })
-                                .addOnFailureListener(e -> {
-                                    Toast.makeText(this, "Error updating post ID: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                });
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error saving post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+                db.collection("posts")
+                        .add(newPost) // Add the post to Firestore
+                        .addOnSuccessListener(documentReference -> {
+                            // Set the Firestore document ID as the postId
+                            String newPostId = documentReference.getId();
+                            newPost.setId(newPostId); // Update the Post object with the ID
+
+                            // Update the post in Firestore with the postId
+                            db.collection("posts").document(newPostId)
+                                    .update("id", newPostId)
+                                    .addOnSuccessListener(aVoid -> {
+                                        // Increment the post count in the community document
+                                        incrementCommunityPostCount(communityId);
+
+                                        Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
+                                        finish(); // Close the activity
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(this, "Error updating post ID: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(this, "Error saving post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            }
         } else {
             Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
         }
@@ -186,7 +212,6 @@ public class AddEditPostActivity extends AppCompatActivity {
                     Toast.makeText(this, "Failed to update community post count: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
 
 
     private void displayPost(Post post) {

@@ -8,6 +8,8 @@ public class Post {
     private String community; // Name or ID of the community
     private int upvoteCount;
     private int downvoteCount;
+    private int commentCount; // NEW: Tracks the number of comments
+
 
     // Default constructor required for Firestore
     public Post() {}
@@ -20,8 +22,17 @@ public class Post {
         this.community = community;
         this.upvoteCount = 0;
         this.downvoteCount = 0;
+        this.commentCount = 0; // Initialize to 0
     }
 
+    // Getter and Setter for commentCount
+    public int getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(int commentCount) {
+        this.commentCount = commentCount;
+    }
     // Getters and setters
     public String getId() {
         return id;
