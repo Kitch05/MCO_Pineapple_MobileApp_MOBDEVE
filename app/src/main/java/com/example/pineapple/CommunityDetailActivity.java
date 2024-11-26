@@ -345,8 +345,8 @@ public class CommunityDetailActivity extends AppCompatActivity {
                     postCount++;
                     postCountTextView.setText(String.valueOf(postCount));
 
-                    // Optionally, update Firestore community's post count
-                    updateCommunityPostCount(communityId);
+                    // Increment the post count in the community document
+                    updateCommunityPostCount(communityId, 1);
 
                     // Refresh posts to make sure new post is visible
                     fetchPosts(communityId);  // Re-fetch posts for the community to ensure the new post is displayed
@@ -357,12 +357,9 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 });
     }
 
-
-
-    private void updateCommunityPostCount(String communityId) {
-        // Update the post count in the community document
+    private void updateCommunityPostCount(String communityId, int increment) {
         DocumentReference communityRef = db.collection("community").document(communityId);
-        communityRef.update("postCount", FieldValue.increment(1))  // Increment the post count by 1
+        communityRef.update("postCount", FieldValue.increment(increment))  // Increment or decrement the post count
                 .addOnSuccessListener(aVoid -> Log.d("CommunityDetailActivity", "Post count updated"))
                 .addOnFailureListener(e -> Log.e("CommunityDetailActivity", "Failed to update post count", e));
     }

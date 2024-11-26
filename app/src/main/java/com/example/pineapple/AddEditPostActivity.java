@@ -55,25 +55,46 @@ public class AddEditPostActivity extends AppCompatActivity {
         populateCommunitiesSpinner();
 
         Intent intent = getIntent();
+        String defaultCommunityId = intent.getStringExtra("communityId");
+
         if (intent.hasExtra("title") && intent.hasExtra("content")) {
             position = intent.getIntExtra("position", -1);
             String title = intent.getStringExtra("title");
             String content = intent.getStringExtra("content");
             String communityId = intent.getStringExtra("community");
 
-            // Create a Post object with the received data
             Post post = new Post(title, content, null, communityId);
-
-            // Display the post details
             displayPost(post);
 
             savePostButton.setText("Update");
         } else {
             savePostButton.setText("Save");
+            if (defaultCommunityId != null) {
+                setDefaultCommunity(defaultCommunityId);
+            }
         }
 
         savePostButton.setOnClickListener(v -> saveOrUpdatePost());
     }
+
+    private void setDefaultCommunity(String communityId) {
+        db.collection("community").document(communityId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String communityName = documentSnapshot.getString("name");
+                        if (communityName != null) {
+                            ArrayAdapter<String> adapter = (ArrayAdapter<String>) communitySpinner.getAdapter();
+                            int spinnerPosition = adapter.getPosition(communityName);
+                            communitySpinner.setSelection(spinnerPosition);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error setting default community: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
     private void populateCommunitiesSpinner() {
         // Fetch communities from Firestore
