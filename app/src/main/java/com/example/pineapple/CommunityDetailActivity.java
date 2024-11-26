@@ -59,7 +59,7 @@ public class CommunityDetailActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_community_detail);
+        setActivityLayout(R.layout.activity_community_detail);
 
         // Initialize views
         communityNameTextView = findViewById(R.id.communityName);
