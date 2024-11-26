@@ -26,7 +26,7 @@ public class BaseActivity extends AppCompatActivity {
     private ImageView navHome;
     private ImageView navCommunity;
     private ImageView navPost;
-    private ImageView navInbox;
+    private ImageView navProfile;
     private ImageView navNotifs;
 
     BottomNavigationView navbar;
@@ -42,7 +42,7 @@ public class BaseActivity extends AppCompatActivity {
         navHome = findViewById(R.id.navHome);
         navCommunity = findViewById(R.id.navCommunity);
         navPost = findViewById(R.id.navPost);
-        navInbox = findViewById(R.id.navInbox);
+        navProfile = findViewById(R.id.navProfile);
         navNotifs = findViewById(R.id.navNotifs);
 
         setupHeaderButtons();
@@ -68,13 +68,13 @@ public class BaseActivity extends AppCompatActivity {
             }
         });
 
-        navInbox.setOnClickListener( v -> {
-            Intent intent = new Intent(BaseActivity.this, Inbox.class);
+        navNotifs.setOnClickListener( v -> {
+            Intent intent = new Intent(BaseActivity.this, NotificationsActivity.class);
             startActivity(intent);
         });
 
-        navNotifs.setOnClickListener( v -> {
-            Intent intent = new Intent(BaseActivity.this, NotificationsActivity.class);
+        navProfile.setOnClickListener( v -> {
+            Intent intent = new Intent(BaseActivity.this, ProfileActivity.class);
             startActivity(intent);
         });
     }
