@@ -13,14 +13,32 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/backButton"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/leftarrow"
-            android:contentDescription="Home"
-            android:layout_marginEnd="16dp"
-            android:layout_margin="10sp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp" >
+            <ImageView
+                android:id="@+id/backButton"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/leftarrow"
+                android:contentDescription="Home"
+                android:layout_marginEnd="16dp"
+                android:layout_margin="10sp"/>
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/signOut"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/signout"
+                android:contentDescription="Home"
+                android:layout_marginEnd="16dp"
+                android:layout_margin="10sp"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

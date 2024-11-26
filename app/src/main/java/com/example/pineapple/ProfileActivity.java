@@ -23,7 +23,7 @@ import java.util.Map;
 public class ProfileActivity extends BaseActivity {
 
     private TextView username;
-    private ImageView profilePic, backBtn;
+    private ImageView profilePic, backBtn, signoutBtn;
     private TextView description;
     private Button editProfile;
 
@@ -45,11 +45,28 @@ public class ProfileActivity extends BaseActivity {
         description = findViewById(R.id.userDescription);
         editProfile = findViewById(R.id.editProfileButton);
         backBtn = findViewById(R.id.backButton);
+        signoutBtn = findViewById(R.id.signOut);
 
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
+            }
+        });
+
+        signoutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                mAuth.signOut();
+
+                // Redirect to Login Activity or show a Toast
+                Intent intent = new Intent( getApplicationContext(), Login.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+
+                Toast.makeText(getApplicationContext(), "You have been signed out.", Toast.LENGTH_SHORT).show();
             }
         });
 
