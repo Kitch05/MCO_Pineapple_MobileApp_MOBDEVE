@@ -1,6 +1,7 @@
 package com.example.pineapple;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,31 +46,50 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Comm
 
         holder.textViewName.setText(community.getName());
         holder.textViewDescription.setText(community.getDescription());
-        holder.membersCountTextView.setText(community.getMemberCount() + " Members"); // Update members count
+        holder.membersCountTextView.setText(community.getMemberCount() + " Members");
 
+        // Update the Join button text based on whether the user has joined
         holder.joinButton.setText(community.isJoined() ? "Joined" : "Join");
 
+        // Set onClickListener for the Join button to join/leave the community
         holder.joinButton.setOnClickListener(v -> {
             if (community.isJoined()) {
                 community.leaveCommunity();
-                updateCommunityStatusInFirestore(community, false); // Update Firestore
+                updateCommunityStatusInFirestore(community, false);
             } else {
                 community.joinCommunity();
-                updateCommunityStatusInFirestore(community, true); // Update Firestore
+                updateCommunityStatusInFirestore(community, true);
             }
-            notifyItemChanged(position); // Refresh UI for the updated item
+            notifyItemChanged(position);
         });
 
+        // Set onClickListener for the item view (community card) to view community details
         holder.itemView.setOnClickListener(v -> {
             if (context instanceof CommunityActivity) {
+                // Handle click for CommunityActivity
                 ((CommunityActivity) context).setCurrentCommunityPosition(position);
-                ((CommunityActivity) context).joinCommunity(community);
+                Intent intent = new Intent(context, CommunityDetailActivity.class);
+                intent.putExtra("communityId", community.getId());
+                intent.putExtra("communityName", community.getName());
+                intent.putExtra("communityDescription", community.getDescription());
+                intent.putExtra("memberCount", community.getMemberCount());
+                intent.putExtra("postCount", community.getPostCount());
+                intent.putExtra("isJoined", community.isJoined());
+                context.startActivity(intent);
+            } else if (context instanceof MyCommunities) {
+                // Handle click for MyCommunities
+                ((MyCommunities) context).setCurrentCommunityPosition(position);
+                Intent intent = new Intent(context, CommunityDetailActivity.class);
+                intent.putExtra("communityId", community.getId());
+                intent.putExtra("communityName", community.getName());
+                intent.putExtra("communityDescription", community.getDescription());
+                intent.putExtra("memberCount", community.getMemberCount());
+                intent.putExtra("postCount", community.getPostCount());
+                intent.putExtra("isJoined", community.isJoined());
+                context.startActivity(intent);
             }
-            onCommunityClickListener.onCommunityClick(position);
         });
     }
-
-
 
     @Override
     public int getItemCount() {

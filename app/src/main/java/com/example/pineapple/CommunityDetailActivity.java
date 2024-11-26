@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,8 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
@@ -112,6 +116,18 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
                 if (community != null) {
                     community.setId(communityId);
+                    // Fetch the creatorId
+                    String creatorId = document.getString("creatorId");
+
+                    // Check if the current user is the creator
+                    if (creatorId != null && creatorId.equals(getCurrentUserId())) {
+                        // Enable or show the edit button if the user is the creator
+                        editCommunityButton.setVisibility(View.VISIBLE); // Show button if creator
+                    } else {
+                        // Hide or disable the edit button if the user is not the creator
+                        editCommunityButton.setVisibility(View.GONE); // Hide the button if not creator
+                    }
+
                     updateUIWithCommunityData();
                 }
             } else {
@@ -122,6 +138,7 @@ public class CommunityDetailActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void updateUIWithCommunityData() {
         communityNameTextView.setText(community.getName());
@@ -170,13 +187,34 @@ public class CommunityDetailActivity extends AppCompatActivity {
 
         // Update Firestore: Modify 'joined' instead of 'isJoined'
         DocumentReference communityRef = db.collection("community").document(communityId);
-        communityRef.update("joined", isJoined, "memberCount", memberCount)  // Update 'joined' field in Firestore
+        communityRef.update("joined", isJoined, "memberCount", memberCount)
                 .addOnSuccessListener(aVoid -> {
                     // Update the community list directly
                     fetchCommunityData(communityId);  // Re-fetch community data to reflect the updated state
+
+                    // Update the user's joined communities list
+                    updateUserJoinedCommunities(isJoined, communityId); // Call to update user's document
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to update membership.", Toast.LENGTH_SHORT).show());
     }
+
+    private void updateUserJoinedCommunities(boolean isJoined, String communityId) {
+        String userId = getCurrentUserId();  // Assume you have a method to get the current user's ID
+        if (userId != null) {
+            DocumentReference userRef = db.collection("users").document(userId);
+
+            if (isJoined) {
+                // Add community to joinedCommunities if the user joins
+                userRef.update("joinedCommunities", FieldValue.arrayUnion(communityId))
+                        .addOnSuccessListener(aVoid -> Log.d("CommunityDetailActivity", "Community added to user."));
+            } else {
+                // Remove community from joinedCommunities if the user leaves
+                userRef.update("joinedCommunities", FieldValue.arrayRemove(communityId))
+                        .addOnSuccessListener(aVoid -> Log.d("CommunityDetailActivity", "Community removed from user."));
+            }
+        }
+    }
+
 
 
     private void updateJoinLeaveButtonText() {
@@ -274,6 +312,15 @@ public class CommunityDetailActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private String getCurrentUserId() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            return currentUser.getUid();
+        } else {
+            return null;
+        }
     }
 
 }

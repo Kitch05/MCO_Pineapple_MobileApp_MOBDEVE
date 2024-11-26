@@ -29,6 +29,7 @@ public class AddEditCommunityActivity extends AppCompatActivity {
     private CollectionReference communitiesRef;
 
     private String communityId;
+    private String creatorId; // Store the creator's ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +56,25 @@ public class AddEditCommunityActivity extends AppCompatActivity {
         String communityDescription = intent.getStringExtra("communityDescription");
 
         if (communityId != null) {
-            // Pre-fill fields for editing
-            communityNameInput.setText(communityName);
-            communityDescriptionInput.setText(communityDescription);
-            saveCommunityButton.setText("Update");
-
+            // Fetch community data to check if current user is the creator
+            DocumentReference communityRef = communitiesRef.document(communityId);
+            communityRef.get().addOnSuccessListener(documentSnapshot -> {
+                if (documentSnapshot.exists()) {
+                    creatorId = documentSnapshot.getString("creatorId");
+                    if (creatorId != null && creatorId.equals(getCurrentUserId())) {
+                        // Pre-fill fields for editing if the current user is the creator
+                        communityNameInput.setText(communityName);
+                        communityDescriptionInput.setText(communityDescription);
+                        saveCommunityButton.setText("Update");
+                    } else {
+                        // Disable editing if the current user is not the creator
+                        saveCommunityButton.setEnabled(false);
+                        Toast.makeText(this, "You are not the creator of this community!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(this, "Error fetching community details: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
         } else {
             // Set for new community creation
             saveCommunityButton.setText("Save");
@@ -95,28 +110,26 @@ public class AddEditCommunityActivity extends AppCompatActivity {
             } else {
                 // Create new community
                 Community newCommunity = new Community(name, description);
-                communitiesRef.add(newCommunity)
-                        .addOnSuccessListener(documentReference -> {
-                            String userId = getCurrentUserId();
-                            if (userId != null) {
-                                // Optionally add the current user as a member
-                                DocumentReference membersRef = documentReference.collection("members").document(userId);
-                                membersRef.set(new HashMap<>()); // Empty map or user-specific data
-                            }
+                String userId = getCurrentUserId();
+                if (userId != null) {
+                    // Set the creatorId as the current user's ID when creating a new community
+                    newCommunity.setCreatorId(userId);
+                    communitiesRef.add(newCommunity)
+                            .addOnSuccessListener(documentReference -> {
+                                Toast.makeText(this, "Community created successfully!", Toast.LENGTH_SHORT).show();
 
-                            Toast.makeText(this, "Community created successfully!", Toast.LENGTH_SHORT).show();
-
-                            // Send new data back to the calling activity
-                            Intent resultIntent = new Intent();
-                            resultIntent.putExtra("communityId", documentReference.getId());
-                            resultIntent.putExtra("communityName", name);
-                            resultIntent.putExtra("communityDescription", description);
-                            setResult(RESULT_OK, resultIntent);
-                            finish();
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(this, "Error creating community: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
+                                // Send new data back to the calling activity
+                                Intent resultIntent = new Intent();
+                                resultIntent.putExtra("communityId", documentReference.getId());
+                                resultIntent.putExtra("communityName", name);
+                                resultIntent.putExtra("communityDescription", description);
+                                setResult(RESULT_OK, resultIntent);
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Error creating community: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                }
             }
         } else {
             Toast.makeText(this, "Please enter valid details", Toast.LENGTH_SHORT).show();
