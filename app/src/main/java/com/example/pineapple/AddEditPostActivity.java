@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -155,6 +156,9 @@ public class AddEditPostActivity extends AppCompatActivity {
                         db.collection("posts").document(postId)
                                 .update("id", postId)
                                 .addOnSuccessListener(aVoid -> {
+                                    // Increment the post count in the community document
+                                    incrementCommunityPostCount(communityId);
+
                                     Toast.makeText(this, "Post saved successfully!", Toast.LENGTH_SHORT).show();
                                     finish();  // Close the activity
                                 })
@@ -169,6 +173,21 @@ public class AddEditPostActivity extends AppCompatActivity {
             Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
         }
     }
+
+    private void incrementCommunityPostCount(String communityId) {
+        db.collection("community").document(communityId)
+                .update("postCount", FieldValue.increment(1))  // Increment the post count by 1
+                .addOnSuccessListener(aVoid -> {
+                    // Log success
+                    Toast.makeText(this, "Community post count updated.", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    // Log failure
+                    Toast.makeText(this, "Failed to update community post count: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
 
     private void displayPost(Post post) {
         postTitleInput.setText(post.getTitle());

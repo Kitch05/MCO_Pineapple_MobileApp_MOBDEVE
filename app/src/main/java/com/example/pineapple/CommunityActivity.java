@@ -89,7 +89,6 @@ public class CommunityActivity extends BaseActivity {
                     communityList.clear();
                     originalCommunityList.clear();
                     for (DocumentSnapshot document : snapshot.getDocuments()) {
-                        // Same logic as before to add communities to lists
                         Community community = new Community(
                                 document.getId(),
                                 document.getString("name"),
@@ -98,12 +97,16 @@ public class CommunityActivity extends BaseActivity {
                                 document.get("postCount", Integer.class),
                                 document.getBoolean("joined")
                         );
+                        // Log to verify postCount
+                        Log.d("CommunityActivity",  " Post Count: " + community.getPostCount());
                         communityList.add(community);
                         originalCommunityList.add(community);
                     }
                     communityAdapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Communities loaded from Firestore", Toast.LENGTH_SHORT).show();
                 });
     }
+
 
 
     // Modified filter method
@@ -154,6 +157,8 @@ public class CommunityActivity extends BaseActivity {
             boolean isJoined = data.getBooleanExtra("isJoined", false);
             int position = data.getIntExtra("position", -1); // Ensure you receive the position of the community
 
+            Toast.makeText(this, ", Post Count: " + postCount, Toast.LENGTH_SHORT).show();
+
             if (position >= 0 && position < communityList.size()) {
                 // Update the existing community in the list
                 Community community = communityList.get(position);
@@ -166,14 +171,21 @@ public class CommunityActivity extends BaseActivity {
                 // Update Firestore with the new data
                 updateCommunityInFirestore(community);
 
+                communityList.set(position, community);
+
                 // Notify the adapter that the community has been updated
                 communityAdapter.notifyItemChanged(position);
+
+                Toast.makeText(this, ", Post Count: " + postCount, Toast.LENGTH_SHORT).show();
             } else {
                 // If position is -1, this means it's a new community, so add it
                 Community newCommunity = new Community(communityId, communityName, communityDescription, memberCount, postCount, isJoined);
                 newCommunity.setJoined(isJoined);
                 addCommunityToFirestore(newCommunity);
             }
+
+            // Refresh the community list to ensure the post count is updated
+            loadCommunitiesFromFirestore();
         }
     }
 
@@ -217,13 +229,14 @@ public class CommunityActivity extends BaseActivity {
     private void updateCommunityInFirestore(Community community) {
         db.collection("community")
                 .document(community.getId())
-                .set(community)  // Use set() to replace the document if it exists
+                .set(community)  // Use set() to update the community
                 .addOnSuccessListener(aVoid -> {
-                    // You could optionally notify the adapter here, though it's done in onActivityResult already
                     Log.d("CommunityActivity", "Community updated successfully.");
+                    Toast.makeText(this, "Community updated in Firestore: " + community.getName(), Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
                     Log.w("CommunityActivity", "Error updating community.", e);
+                    Toast.makeText(this, "Error updating community in Firestore: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
