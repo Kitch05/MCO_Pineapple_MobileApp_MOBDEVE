@@ -52,9 +52,33 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         // Populate post data
         holder.textViewTitle.setText(post.getTitle() != null ? post.getTitle() : "No Title");
         holder.textViewContent.setText(post.getContent() != null ? post.getContent() : "No Content");
-        holder.textViewCommunity.setText(post.getCommunity() != null ? post.getCommunity() : "Unknown Community");
         holder.upvoteCount.setText(String.valueOf(post.getUpvoteCount()));
         holder.downvoteCount.setText(String.valueOf(post.getDownvoteCount()));
+
+        // Fetch and display community name
+        String communityId = post.getCommunity();
+        if (communityId != null && !communityId.isEmpty()) {
+            db.collection("community").document(communityId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String communityName = documentSnapshot.getString("name");
+                            if (communityName != null) {
+                                holder.textViewCommunity.setText(communityName);
+                            } else {
+                                holder.textViewCommunity.setText("Unknown Community");
+                            }
+                        } else {
+                            holder.textViewCommunity.setText("Community not found");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("PostAdapter", "Error fetching community name", e);
+                        holder.textViewCommunity.setText("Error loading community");
+                    });
+        } else {
+            holder.textViewCommunity.setText("Unknown Community");
+        }
 
         // Handle username fetching
         String userId = post.getUserId();
