@@ -34,19 +34,21 @@
         android:padding="10dp"/>
 
     <ImageView
-        android:id="@+id/navInbox"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:src="@drawable/inbox"
-        android:padding="15dp"/>
-
-    <ImageView
         android:id="@+id/navNotifs"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:src="@drawable/no_notifications"
+        android:padding="15dp"/>
+
+
+
+    <ImageView
+        android:id="@+id/navProfile"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:src="@drawable/profile"
         android:padding="15dp"/>
 
 </LinearLayout>

@@ -1,16 +1,20 @@
 package com.example.pineapple;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.LayoutRes;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -20,20 +24,21 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProfileActivity extends BaseActivity {
 
-    private TextView username;
-    private ImageView profilePic;
+public class ProfileActivity extends AppCompatActivity {
+
+    private TextView username, postsBtn, commentsBtn, likesBtn;
+    private ImageView profilePic, backBtn, signoutBtn;
     private TextView description;
     private Button editProfile;
-
+    private ActivityResultLauncher<Intent> addEditPostLauncher;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
     private ActivityResultLauncher<Intent> editProfileLauncher;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
@@ -44,6 +49,8 @@ public class ProfileActivity extends BaseActivity {
         profilePic = findViewById(R.id.profilePic);
         description = findViewById(R.id.userDescription);
         editProfile = findViewById(R.id.editProfileButton);
+        backBtn = findViewById(R.id.backButton);
+        signoutBtn = findViewById(R.id.signOut);
 
         editProfileLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -66,11 +73,18 @@ public class ProfileActivity extends BaseActivity {
                     }
                 });
 
+        setupBtns();
         // Load profile data from Firestore
         loadUserProfile();
 
         // Set up click listener for editing profile
         editProfile.setOnClickListener(this::editProfile);
+    }
+
+    protected void setActivityLayout(@LayoutRes int layoutResID) {
+        FrameLayout contentFrame = findViewById(R.id.profileContent);
+        View view = getLayoutInflater().inflate(layoutResID, contentFrame, false);
+        contentFrame.addView(view);
     }
 
     private void loadUserProfile() {
@@ -125,5 +139,56 @@ public class ProfileActivity extends BaseActivity {
         intent.putExtra("userDescription", description.getText().toString());
 
         editProfileLauncher.launch(intent);
+    }
+
+    private void setupBtns() {
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent( getApplicationContext(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+        signoutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SharedPreferences sharedPreferences = sharedPreferences = getSharedPreferences("PineapplePrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear(); // This removes all stored preferences
+                editor.apply();
+
+                FirebaseAuth mAuth = FirebaseAuth.getInstance();
+                mAuth.signOut();
+
+                // Redirect to Login Activity or show a Toast
+                Intent intent = new Intent( getApplicationContext(), Login.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+
+                Toast.makeText(getApplicationContext(), "You have been signed out.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        postsBtn = findViewById(R.id.userPostsButton);
+        postsBtn.setOnClickListener(view -> {
+            Intent intent = new Intent(ProfileActivity.this, ProfilePosts.class);
+            startActivity(intent);
+        });
+
+        commentsBtn = findViewById(R.id.userCommentsButton);
+        commentsBtn.setOnClickListener(view -> {
+            Intent intent = new Intent(ProfileActivity.this, ProfileComments.class);
+            startActivity(intent);
+        });
+
+//        likesBtn = findViewById(R.id.userLikesButton);
+//        likesBtn.setOnClickListener(view -> {
+//            Intent intent = new Intent(ProfileActivity.this, ProfileLikes.class);
+//            startActivity(intent);
+//        });
     }
 }
