@@ -122,16 +122,6 @@
                     android:text="Comments"
                     android:textColor="@color/contrast"
                     android:textSize="18sp"/>
-
-                <TextView
-                    android:id="@+id/userLikesButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textAlignment="center"
-                    android:text="Likes"
-                    android:textColor="@color/contrast"
-                    android:textSize="18sp"/>
             </LinearLayout>
         </LinearLayout>
 
