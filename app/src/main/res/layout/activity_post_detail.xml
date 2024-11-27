@@ -88,8 +88,8 @@
             <!-- Divider -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#F1F6F9"
+                android:layout_height="2dp"
+                android:background="#6B50A4"
                 android:layout_marginVertical="12dp" />
 
             <!-- Post Content -->
@@ -105,96 +105,7 @@
                 android:lineSpacingExtra="4dp" />
 
             <!-- Upvote/Downvote/Comment Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="20dp"
-                android:paddingVertical="8dp">
-
-                <!-- Upvote Button with Count -->
-                <LinearLayout
-                    android:id="@+id/upvoteSection"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:id="@+id/upvoteIcon"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/upvoteicon"
-                        app:tint="#F1F6F9" />
-
-                    <TextView
-                        android:id="@+id/upvoteCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="2"
-                        android:textSize="14sp"
-                        android:textColor="#F1F6F9" />
-                </LinearLayout>
-
-                <!-- Downvote Button with Count -->
-                <LinearLayout
-                    android:id="@+id/downvoteSection"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:layout_marginStart="16dp">
-
-                    <ImageView
-                        android:id="@+id/downvoteIcon"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/downvote"
-                        app:tint="#F1F6F9" />
-
-                    <TextView
-                        android:id="@+id/downvoteCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="0"
-                        android:textSize="14sp"
-                        android:textColor="#F1F6F9" />
-                </LinearLayout>
-
-                <!-- Comment Icon with Count -->
-                <LinearLayout
-                    android:id="@+id/commentSection"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:id="@+id/commentIcon"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/comment"
-                        app:tint="#F1F6F9" />
-
-                    <TextView
-                        android:id="@+id/commentCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="0"
-                        android:textSize="14sp"
-                        android:textColor="#F1F6F9" />
-                </LinearLayout>
-            </LinearLayout>
+z
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -228,12 +139,13 @@
 
         <Button
             android:id="@+id/submitCommentButton"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:backgroundTint="#6200EE"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/send_button_background"
             android:text="Send"
             android:textColor="#FFFFFF"
-            android:layout_marginStart="8dp" />
+            android:layout_marginStart="8dp"
+            android:fontFamily="sans-serif-medium" />
     </LinearLayout>
 
 </LinearLayout>

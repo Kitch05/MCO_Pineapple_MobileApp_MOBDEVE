@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -248,7 +249,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     public static class CommentViewHolder extends RecyclerView.ViewHolder {
         TextView commentContent, commentUsername, commentTimestamp, upvoteCount, downvoteCount;
-        ImageButton upvoteButton, downvoteButton;
+        ImageView upvoteButton, downvoteButton;
         RecyclerView repliesRecyclerView;
         Button replyButton, submitReplyButton;
         EditText replyInput;

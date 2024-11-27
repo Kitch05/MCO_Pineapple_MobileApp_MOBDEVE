@@ -21,7 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="start">
+        android:gravity="start"
+        android:layout_marginTop="4dp">
 
         <TextView
             android:id="@+id/commentUsername"
@@ -41,7 +42,7 @@
             android:textColor="#808080" />
     </LinearLayout>
 
-    <!-- Reply Input Section (hidden by default) -->
+    <!-- Reply Input Section -->
     <LinearLayout
         android:id="@+id/replyContainer"
         android:layout_width="match_parent"
@@ -55,25 +56,27 @@
         <EditText
             android:id="@+id/replyInput"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:hint="Write a reply..."
-            android:padding="8dp"
+            android:padding="6dp"
             android:backgroundTint="#FFFFFF"
             android:inputType="text"
             android:textColor="#FFFFFF"
-            android:textColorHint="#CCCCCC" />
+            android:textColorHint="#CCCCCC"
+            android:layout_marginEnd="4dp" />
 
         <!-- Submit Button -->
         <Button
             android:id="@+id/submitReplyButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:text="Submit"
-            android:layout_marginStart="8dp"
             android:backgroundTint="#6B50A4"
             android:textColor="#FFFFFF"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp" />
     </LinearLayout>
 
     <!-- Voting Section -->
@@ -81,61 +84,62 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:padding="4dp"
         android:layout_marginTop="8dp">
 
         <!-- Upvote Button -->
-        <ImageButton
+        <ImageView
             android:id="@+id/upvoteButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/upvoteicon"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="#F1F6F9"
-            android:contentDescription="Upvote" />
-
+            android:contentDescription="Upvote"
+            android:tint="#F1F6F9" />
 
         <!-- Upvote Count -->
         <TextView
             android:id="@+id/upvoteCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:text="0"
-            android:textColor="#FFFFFF"
-            android:layout_marginStart="8dp" />
+            android:gravity="center"
+            android:textColor="#FFFFFF" />
 
         <!-- Downvote Button -->
-        <ImageButton
+        <ImageView
             android:id="@+id/downvoteButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:layout_marginStart="16dp"
             android:src="@drawable/downvote"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Downvote"
-            app:tint="#F1F6F9"/>
+            android:tint="#F1F6F9" />
 
         <!-- Downvote Count -->
         <TextView
             android:id="@+id/downvoteCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0"
-            android:textColor="#FFFFFF"
             android:layout_marginStart="8dp"
-            app:tint="#F1F6F9"/>
+            android:text="0"
+            android:gravity="center"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
     <!-- Reply Button -->
     <Button
         android:id="@+id/replyButton"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:text="Reply"
         android:textSize="12sp"
         android:backgroundTint="#6B50A4"
         android:textColor="#FFFFFF"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="4dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp" />
 
     <!-- Replies RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView

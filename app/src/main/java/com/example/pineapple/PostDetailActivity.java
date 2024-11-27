@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PostDetailActivity extends BaseActivity {
+public class PostDetailActivity extends AppCompatActivity {
     private static final String TAG = "PostDetailActivity";
 
     private TextView postTitle, postContent, postCommunity, postAuthor;
@@ -35,7 +36,7 @@ public class PostDetailActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setActivityLayout(R.layout.activity_post_detail);
+        setContentView(R.layout.activity_post_detail);
 
         db = FirebaseFirestore.getInstance();
         initializeViews();
