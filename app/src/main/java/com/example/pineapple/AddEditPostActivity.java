@@ -39,9 +39,7 @@ public class AddEditPostActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_edit_post);
-
-
-        Toast.makeText(this, "AddEditPostActivity opened", Toast.LENGTH_SHORT).show();
+        
 
         // Initialize UI components
         postTitleInput = findViewById(R.id.postTitleInput);
@@ -76,6 +74,8 @@ public class AddEditPostActivity extends AppCompatActivity {
             Post post = new Post(title, content, null, communityId);
             displayPost(post);
 
+            communitySpinner.post(() -> setDefaultCommunity(communityId));
+
             savePostButton.setText("Update");
         } else {
             savePostButton.setText("Save");
@@ -94,13 +94,15 @@ public class AddEditPostActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         String communityName = documentSnapshot.getString("name");
                         if (communityName != null) {
+                            // Wait until the spinner adapter is populated
                             ArrayAdapter<String> adapter = (ArrayAdapter<String>) communitySpinner.getAdapter();
                             if (adapter != null) {
                                 int spinnerPosition = adapter.getPosition(communityName);
-                                communitySpinner.setSelection(spinnerPosition);
-                                Toast.makeText(this, "Default community set: " + communityName, Toast.LENGTH_SHORT).show(); // Debugging Toast
-                            } else {
-                                Toast.makeText(this, "Spinner adapter is null", Toast.LENGTH_SHORT).show(); // Debugging Toast
+                                if (spinnerPosition >= 0) {
+                                    communitySpinner.setSelection(spinnerPosition);
+                                } else {
+                                    Toast.makeText(this, "Community not found in the list.", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
                     }
@@ -109,7 +111,6 @@ public class AddEditPostActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error setting default community: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
 
     private void populateCommunitiesSpinner() {
         db.collection("community")
@@ -132,22 +133,21 @@ public class AddEditPostActivity extends AppCompatActivity {
                         adapter.setDropDownViewResource(R.layout.spinner_item);
                         communitySpinner.setAdapter(adapter);
 
-                        // Now call displayPost safely
+                        // Set default community after the spinner is populated
                         Intent intent = getIntent();
-                        if (intent.hasExtra("title") && intent.hasExtra("content")) {
-                            position = intent.getIntExtra("position", -1);
-                            String title = intent.getStringExtra("title");
-                            String content = intent.getStringExtra("content");
-                            String communityId = intent.getStringExtra("community");
-
-                            Post post = new Post(title, content, null, communityId);
-                            displayPost(post);
+                        if (intent.hasExtra("communityId")) {
+                            String defaultCommunityId = intent.getStringExtra("communityId");
+                            if (defaultCommunityId != null) {
+                                setDefaultCommunity(defaultCommunityId);
+                            }
                         }
+
                     } else {
                         Toast.makeText(this, "Error fetching communities: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
+
 
     private void saveOrUpdatePost() {
         String title = postTitleInput.getText().toString().trim();
