@@ -61,11 +61,8 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         navPost.setOnClickListener(v -> {
-            Button addPostButton = findViewById(R.id.addPostButton);
-
-            if (addPostButton != null) {
-                addPostButton.performClick();
-            }
+            Intent intent = new Intent(BaseActivity.this, AddEditPostActivity.class);
+            startActivity(intent);
         });
 
         navNotifs.setOnClickListener( v -> {
