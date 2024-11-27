@@ -145,6 +145,9 @@ public class ProfileActivity extends AppCompatActivity {
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Intent intent = new Intent( getApplicationContext(), MainActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
             }
         });
@@ -176,12 +179,12 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-//        commentsBtn = findViewById(R.id.userCommentsButton);
-//        commentsBtn.setOnClickListener(view -> {
-//            Intent intent = new Intent(ProfileActivity.this, ProfileComments.class);
-//            startActivity(intent);
-//        });
-//
+        commentsBtn = findViewById(R.id.userCommentsButton);
+        commentsBtn.setOnClickListener(view -> {
+            Intent intent = new Intent(ProfileActivity.this, ProfileComments.class);
+            startActivity(intent);
+        });
+
 //        likesBtn = findViewById(R.id.userLikesButton);
 //        likesBtn.setOnClickListener(view -> {
 //            Intent intent = new Intent(ProfileActivity.this, ProfileLikes.class);

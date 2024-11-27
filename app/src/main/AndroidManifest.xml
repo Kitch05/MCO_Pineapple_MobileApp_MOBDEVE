@@ -13,6 +13,9 @@
         android:theme="@style/Theme.Pineapple"
         tools:targetApi="31">
         <activity
+            android:name=".ProfileComments"
+            android:exported="false" />
+        <activity
             android:name=".ProfilePosts"
             android:exported="false" />
         <activity

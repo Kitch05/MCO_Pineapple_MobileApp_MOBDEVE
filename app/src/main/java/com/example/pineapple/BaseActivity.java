@@ -74,7 +74,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         navProfile.setOnClickListener( v -> {
-            Intent intent = new Intent(BaseActivity.this, ProfileActivity.class);
+            Intent intent = new Intent(BaseActivity.this, ProfilePosts.class);
             startActivity(intent);
         });
     }
@@ -91,7 +91,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         profileIcon.setOnClickListener(v -> {
-            Intent intent = new Intent(BaseActivity.this, ProfileActivity.class);
+            Intent intent = new Intent(BaseActivity.this, ProfilePosts.class);
             startActivity(intent);
         });
     }
