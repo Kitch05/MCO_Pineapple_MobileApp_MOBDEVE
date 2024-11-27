@@ -39,6 +39,9 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import android.content.SharedPreferences;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Login extends AppCompatActivity {
 
     private SignInClient oneTapClient;
@@ -106,19 +109,33 @@ public class Login extends AppCompatActivity {
                                                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                                                         if (user != null) {
                                                             String email = user.getEmail();
-                                                            String username = user.getDisplayName(); // Firebase provides the display name as "name"
+                                                            String username = user.getDisplayName();
 
-                                                            // Save user details in Firestore
-                                                            User newUser = new User(username, email); // Map displayName to username
-                                                            db.collection("users").document(user.getUid())
-                                                                    .set(newUser)
-                                                                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "User added to Firestore"))
-                                                                    .addOnFailureListener(e -> Log.e("Firestore", "Error adding user", e));
+                                                            // Check if the email already exists in Firestore
+                                                            db.collection("users")
+                                                                    .whereEqualTo("email", email)
+                                                                    .get()
+                                                                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                                                                        if (queryDocumentSnapshots.isEmpty()) {
+                                                                            // Email does not exist, add new user
+                                                                            Map<String, Object> newUser = new HashMap<>();
+                                                                            newUser.put("username", username);
+                                                                            newUser.put("email", email);
 
-                                                            // Navigate to the main activity
-                                                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                                            startActivity(intent);
-                                                            finish();
+                                                                            db.collection("users").document(user.getUid())
+                                                                                    .set(newUser)
+                                                                                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "User added to Firestore"))
+                                                                                    .addOnFailureListener(e -> Log.e("Firestore", "Error adding user", e));
+                                                                        } else {
+                                                                            Log.d("Firestore", "User already exists in Firestore.");
+                                                                        }
+                                                                        saveLoginDetails(email);
+                                                                        // Navigate to the main activity
+                                                                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                        startActivity(intent);
+                                                                        finish();
+                                                                    })
+                                                                    .addOnFailureListener(e -> Log.e("Firestore", "Error checking for existing user", e));
                                                         }
                                                     } else {
                                                         // Handle Firebase authentication errors
@@ -131,6 +148,7 @@ public class Login extends AppCompatActivity {
                                 }
                             }
                         });
+
 
 
 
