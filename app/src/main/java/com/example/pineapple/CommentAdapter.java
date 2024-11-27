@@ -33,6 +33,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     private Map<String, List<Comment>> commentThreads;
     private String postId;
     private int depth;
+    String user;
 
     public CommentAdapter(Context context, List<Comment> comments, Map<String, List<Comment>> commentThreads, String postId, int depth) {
         this.context = context;
@@ -146,6 +147,21 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                         db.collection("votes").add(voteData)
                                 .addOnSuccessListener(aVoid -> adjustVoteCounts(holder, comment, isUpvote, true, false));
                     }
+
+                    db.collection("users").document(comment.getUserId()).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    user = documentSnapshot.getString("username");
+                                }
+                            });
+
+                    db.collection("notifications")
+                            .add(new Notification(
+                                    comment.getUserId(),
+                                    currentUserId,
+                                    isUpvote ? "upvote" : "downvote",
+                                    user
+                            ));
                 })
                 .addOnFailureListener(e -> Log.e("VoteError", "Error handling vote", e));
     }
@@ -211,6 +227,19 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
                                 }
                                 commentThreads.get(parentId).add(reply);
                                 notifyDataSetChanged();
+
+                                FirebaseFirestore.getInstance().collection("posts")
+                                        .whereEqualTo("id", parentId).get().addOnSuccessListener( v -> {
+
+                                        });
+
+                                FirebaseFirestore.getInstance().collection("notifications")
+                                        .add(new Notification(
+                                                postId,
+                                                currentUserId,
+                                                "replied",
+                                                null
+                                        ));
                             })
                             .addOnFailureListener(e -> Log.e("CommentAdapter", "Failed to set reply ID", e));
                 })

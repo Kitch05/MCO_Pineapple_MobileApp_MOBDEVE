@@ -10,25 +10,23 @@ public class Notification {
     private String fromId;
     private String userId;
     private String description;
-    private String path;
 
     public Notification() {}
 
-    public Notification(String userId, String fromId, String type, String path, String fromName) {
+    public Notification(String userId, String fromId, String type, String fromName) {
         this.userId = userId;
         this.fromId = fromId;
         this.type = type;
         this.isRead = false;
-        this.path = path;
         this.date = new Date();
         switch (type) {
             case "replied":
-                this.description = fromName + " has replied to you post.";
+                this.description = "A user has replied in your post.";
                 break;
-            case "upvoted":
+            case "upvote":
                 this.description = fromName + " upvoted your post";
                 break;
-            case "downvoted":
+            case "downvote":
                 this.description = fromName + " downvoted your post";
                 break;
             default:

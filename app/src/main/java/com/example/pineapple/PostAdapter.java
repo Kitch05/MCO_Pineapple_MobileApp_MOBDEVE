@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -23,6 +24,7 @@ import java.util.Map;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
 
     private List<Post> postData;
+    private String user;
     private Context context;
     private OnEditClickListener onEditClickListener;
     private OnPostClickListener onPostClickListener;
@@ -191,6 +193,21 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
                                 })
                                 .addOnFailureListener(e -> isVoting = false);
                     }
+
+                    db.collection("users").document(post.getUserId()).get()
+                            .addOnSuccessListener(documentSnapshot -> {
+                                if (documentSnapshot.exists()) {
+                                    user = documentSnapshot.getString("username");
+                                }
+                            });
+
+                    db.collection("notifications")
+                            .add(new Notification(
+                                    post.getUserId(),
+                                    currentUserId,
+                                    isUpvote ? "upvote" : "downvote",
+                                    user
+                            ));
                 })
                 .addOnFailureListener(e -> isVoting = false); // Reset voting state if query fails
     }
