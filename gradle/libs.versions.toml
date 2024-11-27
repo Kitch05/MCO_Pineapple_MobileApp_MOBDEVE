@@ -13,6 +13,8 @@ kotlin = "2.0.21"
 coreKtx = "1.13.1"
 firebaseMessaging = "24.1.0"
 coreKtxVersion = "1.15.0"
+firebaseAuth = "23.1.0"
+playServicesAuth = "21.2.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -27,6 +29,8 @@ recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtxVersion" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

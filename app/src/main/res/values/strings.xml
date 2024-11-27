@@ -2,4 +2,5 @@
     <string name="app_name">Pineapple</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="web_client_id">436715311777-8gsoihre3ciekl5lns8qfvb68uvt3ueb.apps.googleusercontent.com</string>
 </resources>
