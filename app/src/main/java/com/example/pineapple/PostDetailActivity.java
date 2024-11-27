@@ -158,7 +158,6 @@ public class PostDetailActivity extends AppCompatActivity {
                     db.collection("posts").document(postId)
                             .update("commentCount", FieldValue.increment(1))
                             .addOnSuccessListener(aVoid2 -> {
-                                showToast("Comment submitted successfully!");
                                 commentInput.setText(""); // Clear input field
                                 fetchComments(); // Refresh comments
                             })
@@ -189,7 +188,6 @@ public class PostDetailActivity extends AppCompatActivity {
                         db.collection("posts").document(postId)
                                 .update("commentCount", totalComments)
                                 .addOnSuccessListener(aVoid -> {
-                                    showToast("Updated comment count: " + totalComments);
                                 });
                     }
                 });
