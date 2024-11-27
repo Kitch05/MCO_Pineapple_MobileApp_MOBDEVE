@@ -112,34 +112,36 @@ public class AddEditPostActivity extends AppCompatActivity {
 
 
     private void populateCommunitiesSpinner() {
-        // Fetch communities from Firestore
         db.collection("community")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         List<String> communityList = new ArrayList<>();
-                        communityList.add("Select Community");  // Add a default option
+                        communityList.add("Select Community");
 
-                        // Add community names to the list and store their IDs
                         for (QueryDocumentSnapshot document : task.getResult()) {
-                            String communityName = document.getString("name");  // Assuming 'name' is the field for the community's name
-                            String communityId = document.getId();  // Get the community ID (document ID)
+                            String communityName = document.getString("name");
+                            String communityId = document.getId();
                             if (communityName != null && communityId != null) {
                                 communityList.add(communityName);
-                                communityMap.put(communityName, communityId);  // Map community name to its ID
+                                communityMap.put(communityName, communityId);
                             }
                         }
 
-                        // Set up the adapter with the fetched community names
                         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_item, communityList);
                         adapter.setDropDownViewResource(R.layout.spinner_item);
                         communitySpinner.setAdapter(adapter);
 
-                        // Set the default community if available
+                        // Now call displayPost safely
                         Intent intent = getIntent();
-                        String defaultCommunityId = intent.getStringExtra("communityId");
-                        if (defaultCommunityId != null) {
-                            setDefaultCommunity(defaultCommunityId);
+                        if (intent.hasExtra("title") && intent.hasExtra("content")) {
+                            position = intent.getIntExtra("position", -1);
+                            String title = intent.getStringExtra("title");
+                            String content = intent.getStringExtra("content");
+                            String communityId = intent.getStringExtra("community");
+
+                            Post post = new Post(title, content, null, communityId);
+                            displayPost(post);
                         }
                     } else {
                         Toast.makeText(this, "Error fetching communities: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -242,6 +244,11 @@ public class AddEditPostActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         String communityName = documentSnapshot.getString("name");
                         if (communityName != null) {
+                            if (communitySpinner.getAdapter() == null) {
+                                Toast.makeText(this, "Spinner adapter is null", Toast.LENGTH_SHORT).show();
+                                return; // Prevent further execution
+                            }
+
                             ArrayAdapter<String> adapter = (ArrayAdapter<String>) communitySpinner.getAdapter();
                             int spinnerPosition = adapter.getPosition(communityName);
                             communitySpinner.setSelection(spinnerPosition);
@@ -252,4 +259,6 @@ public class AddEditPostActivity extends AppCompatActivity {
                     Toast.makeText(this, "Error fetching community name: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+
 }
